@@ -3,10 +3,10 @@ module QBMM
 using LinearAlgebra
 using StaticArrays
 
-export wheeler_inversion
-export is_realizable
+export wheeler_inversion, is_realizable, CQMOM, invert_moments
 
 include("wheeler.jl")
 include("realizability.jl")
+include("cqmom.jl")
 
 end # module
