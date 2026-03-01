@@ -5,4 +5,6 @@ using QBMM
     include("test_wheeler.jl")
     include("test_realizability.jl")
     include("test_cqmom.jl")
+    include("test_eqmom.jl")
+    include("test_dqmom.jl")
 end
