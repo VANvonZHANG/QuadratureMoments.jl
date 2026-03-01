@@ -2,6 +2,24 @@ using LinearAlgebra
 using StaticArrays
 
 """
+    Wheeler <: AbstractQBMM
+    
+使用 Adaptive Wheeler 算法的 1D 矩反演。
+"""
+struct Wheeler <: AbstractQBMM end
+
+"""
+    invert_moments(method::Wheeler, m::AbstractVector)
+"""
+function invert_moments(::Wheeler, m::AbstractVector{T}) where T
+    return wheeler_inversion(m)
+end
+
+function invert_moments(::Wheeler, m::SVector{L, T}) where {L, T}
+    return wheeler_inversion(m)
+end
+
+"""
     wheeler_inversion(m::AbstractVector{T}; tol=1e-14) -> (nodes, weights)
 
 使用 Adaptive Wheeler 算法执行单变量矩反演。

@@ -14,11 +14,11 @@ function is_realizable(m::AbstractVector{T}; domain=:pos) where T
     if L < 2 return true end
     
     # --- 1. Hamburger Condition: H_n is positive semi-definite ---
-    # n 是使得 2n <= L-1 的最大整数
-    n = (L - 1) ÷ 2
-    H = zeros(T, n+1, n+1)
-    for i in 0:n, j in 0:n
-        H[i+1, j+1] = m[i+j+1]
+    # n+1 = (L+1) ÷ 2
+    N1 = (L + 1) ÷ 2
+    H = zeros(T, N1, N1)
+    @inbounds for j in 1:N1, i in 1:N1
+        H[i, j] = m[i+j-1]
     end
     
     vals = eigvals(Symmetric(H))
@@ -26,17 +26,16 @@ function is_realizable(m::AbstractVector{T}; domain=:pos) where T
         return false
     end
     
-    # 如果只检查全轴分布，到此为止
     if domain == :all
         return true
     end
     
     # --- 2. Stieltjes Condition: H_n^(1) is positive semi-definite ---
-    # n_s 是使得 2n_s + 1 <= L-1 的最大整数
-    n_s = (L - 2) ÷ 2
-    H1 = zeros(T, n_s+1, n_s+1)
-    for i in 0:n_s, j in 0:n_s
-        H1[i+1, j+1] = m[i+j+2]
+    # n+1 = L ÷ 2
+    N2 = L ÷ 2
+    H1 = zeros(T, N2, N2)
+    @inbounds for j in 1:N2, i in 1:N2
+        H1[i, j] = m[i+j]
     end
     
     vals1 = eigvals(Symmetric(H1))
@@ -48,8 +47,32 @@ function is_realizable(m::AbstractVector{T}; domain=:pos) where T
 end
 
 """
-    is_realizable(m::SVector{L, T}; domain=:pos)
+    is_realizable(m::StaticVector{L, T}; domain=:pos)
 """
-function is_realizable(m::SVector{L, T}; domain=:pos) where {L, T}
-    return is_realizable(collect(m); domain=domain)
+@inline function is_realizable(m::StaticVector{L, T}; domain=:pos) where {L, T}
+    if L < 2 return true end
+    
+    # --- 1. Hamburger Condition ---
+    N1 = (L + 1) ÷ 2
+    H = SMatrix{N1, N1, T}(ntuple(k -> @inbounds(m[((k-1) % N1) + ((k-1) ÷ N1) + 1]), Val(N1*N1)))
+    
+    vals = eigvals(Symmetric(H))
+    if any(vals .< -sqrt(eps(T)))
+        return false
+    end
+    
+    if domain == :all
+        return true
+    end
+    
+    # --- 2. Stieltjes Condition ---
+    N2 = L ÷ 2
+    H1 = SMatrix{N2, N2, T}(ntuple(k -> @inbounds(m[((k-1) % N2) + ((k-1) ÷ N2) + 2]), Val(N2*N2)))
+    
+    vals1 = eigvals(Symmetric(H1))
+    if any(vals1 .< -sqrt(eps(T)))
+        return false
+    end
+    
+    return true
 end

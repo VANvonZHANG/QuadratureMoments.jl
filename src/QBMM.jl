@@ -6,7 +6,7 @@ using StaticArrays
 # 抽象类型
 abstract type AbstractQBMM end
 
-export AbstractQBMM
+export AbstractQBMM, Wheeler, PD
 export wheeler_inversion, pd_inversion, is_realizable, mcgraw_correction
 export CQMOM, TensorQMOM, ECQMOM, BruteQMOM, invert_moments
 export EQMOM, GaussianKernel, GammaKernel, BetaKernel

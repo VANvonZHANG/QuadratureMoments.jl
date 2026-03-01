@@ -1,3 +1,24 @@
+using LinearAlgebra
+using StaticArrays
+
+"""
+    PD <: AbstractQBMM
+    
+使用 Product-Difference 算法的 1D 矩反演。
+"""
+struct PD <: AbstractQBMM end
+
+"""
+    invert_moments(method::PD, m::AbstractVector)
+"""
+function invert_moments(::PD, m::AbstractVector{T}) where T
+    return pd_inversion(m)
+end
+
+function invert_moments(::PD, m::SVector{L, T}) where {L, T}
+    return pd_inversion(m)
+end
+
 """
     pd_inversion(m::AbstractVector{T}) -> (nodes, weights)
 
