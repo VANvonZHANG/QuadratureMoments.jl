@@ -4,24 +4,28 @@ using LinearAlgebra
 using StaticArrays
 using ForwardDiff
 using Roots
+using Combinatorics
 
 # --- 1. Core Infrastructure ---
 include("Core/types.jl")
+include("Core/kernels.jl")
 export AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
 export QuadratureResult
+export AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
 
 # --- 2. Math Utilities (Dual Backend) ---
 include("Math/hankel.jl")
 include("Math/stirling.jl")
 include("Math/vandermonde.jl")
-export hankel_matrix, stirling2, solve_vandermonde
+include("Math/moments_utils.jl")
+export hankel_matrix, stirling2, solve_vandermonde, solve_vandermonde_transpose
+export reconstruct_moment
 
 # --- 3. 1D Solvers ---
 include("Solvers/1D/wheeler.jl")
 include("Solvers/1D/pd.jl")
 include("Solvers/1D/eqmom.jl")
 export Wheeler, PD, EQMOM
-export AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
 
 # --- 4. Multi-D Solvers ---
 include("Solvers/MultiD/cqmom.jl")
@@ -41,5 +45,8 @@ export is_realizable, mcgraw_correction
 
 # --- 7. Main API ---
 export invert_moments
+
+# 为了支持子模块中的相对导入，我们需要确保一些基础符号在主模块可见
+# 已经在上面通过 include 实现了。
 
 end # module

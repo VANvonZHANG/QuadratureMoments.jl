@@ -1,40 +1,50 @@
-# src/Math/stirling.jl
+# QBMM.jl/src/Math/stirling.jl
+
 using StaticArrays
-
-# 预计算 Stirling 2 矩阵 (仅针对核心计算 D=1..10)
-# S(n, k) = k*S(n-1, k) + S(n-1, k-1)
-# 用于 EQMOM 矩修正： m_k* = sum_{j=0}^k S(k, j) * sigma^(k-j) * m_j
-const STIRLING2_TABLE = SMatrix{11, 11, Int}([
-    1 0 0 0 0 0 0 0 0 0 0;
-    0 1 0 0 0 0 0 0 0 0 0;
-    0 1 1 0 0 0 0 0 0 0 0;
-    0 1 3 1 0 0 0 0 0 0 0;
-    0 1 7 6 1 0 0 0 0 0 0;
-    0 1 15 25 10 1 0 0 0 0 0;
-    0 1 31 90 65 15 1 0 0 0 0;
-    0 1 63 301 350 140 21 1 0 0 0;
-    0 1 127 966 1701 1050 266 28 1 0 0;
-    0 1 255 3025 7770 6951 2646 462 36 1 0;
-    0 1 511 9330 34105 42525 22827 5880 750 45 1
-])
+using Combinatorics: stirlings2 as comb_stirlings2
 
 """
-    stirling2(n::Int, k::Int, ::NativeBackend) -> Int
-查询预计算好的静态表。
+    stirling2(n::Int, k::Int, ::NativeBackend)
+    stirling2(::Val{n}, ::Val{k}, ::NativeBackend)
+
+原生后端实现：针对 QBMM 常用范围 (N <= 12) 的第二类斯特林数查找表。
 """
-@inline function stirling2(n::Int, k::Int, ::NativeBackend)
-    if n < 0 || k < 0 || n > 10 || k > 10
-        return 0
+@inline function stirling2(n::Int, k::Int, backend::NativeBackend)
+    # 动态派发到静态版本以获取极致性能
+    if 0 <= n <= 12 && 0 <= k <= n
+        return _stirling2_static(Val(n), Val(k))
+    elseif k < 0 || k > n
+        return 0.0
+    else
+        return Float64(comb_stirlings2(n, k))
     end
-    return STIRLING2_TABLE[n+1, k+1]
+end
+
+@generated function _stirling2_static(::Val{n}, ::Val{k}) where {n, k}
+    S = [
+        1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0;
+        0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0;
+        0.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0;
+        0.0 1.0 3.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0;
+        0.0 1.0 7.0 6.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0;
+        0.0 1.0 15.0 25.0 10.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0;
+        0.0 1.0 31.0 90.0 65.0 15.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0;
+        0.0 1.0 63.0 301.0 350.0 140.0 21.0 1.0 0.0 0.0 0.0 0.0 0.0;
+        0.0 1.0 127.0 966.0 1701.0 1050.0 266.0 28.0 1.0 0.0 0.0 0.0 0.0;
+        0.0 1.0 255.0 3025.0 7770.0 6951.0 2646.0 462.0 36.0 1.0 0.0 0.0 0.0;
+        0.0 1.0 511.0 9330.0 34105.0 42525.0 22827.0 5880.0 750.0 45.0 1.0 0.0 0.0;
+        0.0 1.0 1023.0 28501.0 145750.0 246730.0 179487.0 63987.0 11880.0 1155.0 55.0 1.0 0.0;
+        0.0 1.0 2047.0 86526.0 611501.0 1379400.0 1323652.0 627396.0 159027.0 22275.0 1705.0 66.0 1.0
+    ]
+    val = S[n+1, k+1]
+    return :($val)
 end
 
 """
-    stirling2(n::Int, k::Int, ::ExternalBackend) -> Int
+    stirling2(n::Int, k::Int, ::ExternalBackend)
+
+外部后端实现：直接调用 Combinatorics.jl 的实现。
 """
 function stirling2(n::Int, k::Int, ::ExternalBackend)
-    # 如果已安装 Combinatorics.jl，则调用。
-    # 这里为了保持零分配，如果没安装可以退回到 Native。
-    # 用户可以在 ExternalBackend 下手动安装 Combinatorics。
-    return stirling2(n, k, NativeBackend())
+    return Float64(comb_stirlings2(n, k))
 end
