@@ -1,35 +1,40 @@
+# src/Solvers/1D/pd.jl
 using LinearAlgebra
 using StaticArrays
 
 """
-    PD <: AbstractQBMM
+    PD{N} <: AbstractQBMM{1, N}
     
 使用 Product-Difference 算法的 1D 矩反演。
 """
-struct PD <: AbstractQBMM end
+struct PD{N} <: AbstractQBMM{1, N} end
+PD(N::Int) = PD{N}()
 
 """
-    invert_moments(method::PD, m::AbstractVector)
+    invert_moments(method::PD{N}, m::AbstractVector; backend=NativeBackend())
 """
-function invert_moments(::PD, m::AbstractVector{T}) where T
-    return pd_inversion(m)
+function invert_moments(
+    method::PD{N}, 
+    m::AbstractVector{T}; 
+    backend::AbstractMathBackend = NativeBackend()
+) where {N, T}
+    nodes, weights = pd_inversion(m)
+    return QuadratureResult(SVector{N, T}(weights), SMatrix{N, 1, T}(nodes), nothing)
 end
 
-function invert_moments(::PD, m::SVector{L, T}) where {L, T}
-    return pd_inversion(m)
+function invert_moments(
+    method::PD{N}, 
+    m::SVector{L, T}; 
+    backend::AbstractMathBackend = NativeBackend()
+) where {N, L, T}
+    nodes, weights = _pd_inversion(m, Val(N))
+    return QuadratureResult(weights, SMatrix{N, 1, T}(nodes), nothing)
 end
 
-"""
-    pd_inversion(m::AbstractVector{T}) -> (nodes, weights)
+# --- Internal Implementations ---
 
-使用 Product-Difference (PD) 算法执行单变量矩反演。
-输入长度为 2N 的矩序列，返回 N 个节点和权重。
-该方法为基于标准动态数组 (Array) 的实现。
-"""
 function pd_inversion(m::AbstractVector{T}) where T
     N = length(m) ÷ 2
-    @assert length(m) == 2N "The number of moments must be even (2N)."
-    
     P = zeros(T, 2N+1, 2N+1)
     
     P[1, 1] = one(T)
@@ -44,7 +49,6 @@ function pd_inversion(m::AbstractVector{T}) where T
     end
     
     ζ = zeros(T, 2N)
-    # ζ[1] is implicitly 0
     for α in 2:2N
         ζ[α] = P[1, α+1] / (P[1, α] * P[1, α-1])
     end
@@ -57,7 +61,6 @@ function pd_inversion(m::AbstractVector{T}) where T
     end
     
     for α in 1:N-1
-        # Use abs inside sqrt to handle small numerical noise correctly if it occurs
         b[α] = sqrt(abs(ζ[2α+1] * ζ[2α]))
     end
     
@@ -68,16 +71,6 @@ function pd_inversion(m::AbstractVector{T}) where T
     weights = m[1] .* (eigen_decomp.vectors[1, :] .^ 2)
     
     return nodes, weights
-end
-
-"""
-    pd_inversion(m::SVector{L, T}) -> (nodes, weights)
-
-基于 `StaticArrays.jl` 优化的 PD 反演实现，针对较小规模的矩 (L <= 12 即 N <= 6)
-设计，最大程度消除堆内存分配并提升性能。
-"""
-function pd_inversion(m::SVector{L, T}) where {L, T}
-    return _pd_inversion(m, Val(L ÷ 2))
 end
 
 function _pd_inversion(m::SVector{L, T}, ::Val{N}) where {L, T, N}
