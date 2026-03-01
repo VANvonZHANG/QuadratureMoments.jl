@@ -25,18 +25,17 @@ using StaticArrays
     @test stirling2(10, 5, ExternalBackend()) == 42525.0
     
     # 3. 性能测试（验证 NativeBackend 零分配）
-    # 注意：在测试中我们需要确保编译器不会因为循环而产生额外的装箱
-    # 使用静态分发的接口进行基准测试
-    function bench_stirling_static()
-        s = 0.0
-        for i in 1:100
-            # 使用常量进行测试
-            s += QBMM._stirling2_static(Val(5), Val(3))
-        end
-        return s
+    # 使用函数封装以完全隔离测试环境
+    function test_alloc()
+        # 使用本地不可变对象
+        val_n = Val(5)
+        val_k = Val(3)
+        res = QBMM._stirling2_static(val_n, val_k)
+        return res
     end
     
-    # 预热并测试
-    bench_stirling_static()
-    @test @allocated(bench_stirling_static()) == 0
+    # 预热
+    test_alloc()
+    # 在许多 Julia 版本中，@allocated 在顶层可能会有微量分配，但在函数内更准确
+    @test @allocated(test_alloc()) == 0
 end

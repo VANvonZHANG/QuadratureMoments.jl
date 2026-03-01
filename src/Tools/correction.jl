@@ -1,42 +1,54 @@
+# QBMM.jl/src/Tools/correction.jl
+
 using LinearAlgebra
 using StaticArrays
+using ..QBMM: AbstractMathBackend, NativeBackend, ExternalBackend, is_realizable
 
 """
-    mcgraw_correction(m::AbstractVector{T}; max_iter=20) -> m_corrected
-    
-McGraw 矩修正算法优化版。
+    mcgraw_correction(m::AbstractVector{T}; max_iter=20, backend=NativeBackend()) -> m_corrected
+
+McGraw moment correction algorithm for repairing non-realizable moment sequences.
+Maximizes the smoothness of ln(m_k) while preserving m0 and m1.
 """
-function mcgraw_correction(m::AbstractVector{T}; max_iter=20) where T
+function mcgraw_correction(m::AbstractVector{T}; max_iter=20, backend::AbstractMathBackend=NativeBackend()) where T
     L = length(m)
     if L < 4 return m end
     
-    m_curr = collect(m)
+    # 动态版本的分发
+    m_curr = (backend isa NativeBackend) ? MVector{L, T}(m) : collect(m)
     m0_orig = m_curr[1]
     
     for iter in 1:max_iter
-        if is_realizable(m_curr)
+        if is_realizable(m_curr; backend=backend)
             m_curr[1] = m0_orig
-            return m_curr
+            return (backend isa NativeBackend) ? SVector{L, T}(m_curr) : m_curr
         end
         
-        ln_m = log.(max.(m_curr, 1e-30))
+        # ln_m[k]
+        ln_m = [log(max(m_curr[i], 1e-30)) for i in 1:L]
+        # d3[j] = 3rd order difference
         d3 = [ln_m[j+3] - 3*ln_m[j+2] + 3*ln_m[j+1] - ln_m[j] for j in 1:L-3]
+        
         sum_d3_2 = dot(d3, d3)
-        sum_d3_2 = max(1e-15, sum_d3_2)
+        if sum_d3_2 < 1e-15
+            break
+        end
         
         best_k = -1
         max_cos2 = -1.0
         best_ln_ck = 0.0
         
+        # Optimization: Find the index k that is "most responsible" for the non-smoothness
         for k in 2:L
             dot_val = 0.0
             bk_norm2 = 0.0
-            # bk coefficients for j: [1, -3, 3, -1] for j in [k-3, k-2, k-1, k]
-            coeffs = (1.0, -3.0, 3.0, -1.0)
-            for (idx, j) in enumerate((k-3, k-2, k-1, k))
+            # Coefficients from the 3rd-order difference operator
+            # j=k-3, k-2, k-1, k
+            for (idx, coeff) in enumerate((1.0, -3.0, 3.0, -1.0))
+                j = (k-3) + idx - 1
                 if 1 <= j <= L-3
-                    dot_val += d3[j] * coeffs[idx]
-                    bk_norm2 += coeffs[idx]^2
+                    dot_val += d3[j] * coeff
+                    bk_norm2 += coeff^2
                 end
             end
             
@@ -57,36 +69,41 @@ function mcgraw_correction(m::AbstractVector{T}; max_iter=20) where T
         end
     end
     
-    if !is_realizable(m_curr)
-        return _wright_fallback(m_curr)
+    # Final fallback if McGraw fails to reach the realizable region
+    if !is_realizable(m_curr; backend=backend)
+        return wright_fallback(m_curr, backend)
     end
-    return m_curr
+    
+    return (backend isa NativeBackend) ? SVector{L, T}(m_curr) : m_curr
 end
 
 """
-    mcgraw_correction(m::StaticVector{L, T}; max_iter=20)
+    mcgraw_correction(m::StaticVector{L, T}; max_iter=20, backend=NativeBackend())
 """
-@inline function mcgraw_correction(m::StaticVector{L, T}; max_iter=20) where {L, T}
+@inline function mcgraw_correction(m::StaticVector{L, T}; max_iter=20, backend::AbstractMathBackend=NativeBackend()) where {L, T}
     if L < 4 return m end
     
     m_curr = MVector{L, T}(m)
     m0_orig = m_curr[1]
     
     for iter in 1:max_iter
-        if is_realizable(m_curr)
+        if is_realizable(m_curr; backend=backend)
             m_curr[1] = m0_orig
             return SVector{L, T}(m_curr)
         end
         
+        # Zero-allocation ln_m and d3 using ntuple
         ln_m = ntuple(i -> log(max(m_curr[i], 1e-30)), Val(L))
-        # d3[j] = ln_m[j+3] - 3*ln_m[j+2] + 3*ln_m[j+1] - ln_m[j]
         d3 = ntuple(j -> ln_m[j+3] - 3*ln_m[j+2] + 3*ln_m[j+1] - ln_m[j], Val(L-3))
         
         sum_d3_2 = 0.0
         for j in 1:L-3
             sum_d3_2 += d3[j]^2
         end
-        sum_d3_2 = max(1e-15, sum_d3_2)
+        
+        if sum_d3_2 < 1e-15
+            break
+        end
         
         best_k = -1
         max_cos2 = -1.0
@@ -96,6 +113,7 @@ end
             dot_val = 0.0
             bk_norm2 = 0.0
             
+            # Unrolled 3rd-order diff contribution
             # j=k-3
             j1 = k-3
             if 1 <= j1 <= L-3
@@ -138,32 +156,41 @@ end
         end
     end
     
-    if !is_realizable(m_curr)
-        return _wright_fallback_static(m_curr)
+    if !is_realizable(m_curr; backend=backend)
+        return wright_fallback(m_curr, backend)
     end
     return SVector{L, T}(m_curr)
 end
 
-function _wright_fallback(m::AbstractVector{T}) where T
+"""
+    wright_fallback(m, backend)
+
+Reconstruct moments using a log-normal distribution (Wright algorithm) 
+when optimization fails.
+"""
+function wright_fallback(m::AbstractVector{T}, ::ExternalBackend) where T
     L = length(m)
     m_res = copy(m)
     m0, m1, m2 = m[1], m[2], m[3]
     var_term = m2*m0 / (m1^2)
+    
     if var_term <= 1.0
+        # Fallback to monodisperse
         for k in 1:L-1
             m_res[k+1] = m0 * (m1/m0)^k
         end
     else
+        # Log-normal reconstruction
         sig2 = log(var_term)
         mu = log(m1/m0) - 0.5*sig2
-        for k in 3:L-1
+        for k in 3:L-1 # Keep m0, m1, m2
             m_res[k+1] = m0 * exp(k*mu + 0.5*(k^2)*sig2)
         end
     end
     return m_res
 end
 
-@inline function _wright_fallback_static(m::StaticVector{L, T}) where {L, T}
+@inline function wright_fallback(m::StaticVector{L, T}, ::NativeBackend) where {L, T}
     m0, m1, m2 = m[1], m[2], m[3]
     var_term = m2*m0 / (m1^2)
     if var_term <= 1.0
@@ -173,4 +200,9 @@ end
         mu = log(m1/m0) - 0.5*sig2
         return SVector{L, T}(ntuple(k -> k <= 3 ? m[k] : m0 * exp((k-1)*mu + 0.5*((k-1)^2)*sig2), Val(L)))
     end
+end
+
+# Fallback for MVector with NativeBackend
+@inline function wright_fallback(m::MVector{L, T}, backend::NativeBackend) where {L, T}
+    return wright_fallback(SVector{L, T}(m), backend)
 end

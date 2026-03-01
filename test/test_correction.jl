@@ -18,9 +18,9 @@ using StaticArrays
         
         # 验证 N=2 的 Wheeler 反演现在可以成功执行
         # (之前会报错或产生 NaN)
-        nodes, weights = wheeler_inversion(m_corr)
-        @test length(nodes) == 2
-        @test isapprox(sum(weights), 1.0, atol=1e-8)
+        res = invert_moments(Wheeler(2), m_corr)
+        @test length(res.weights) == 2
+        @test isapprox(sum(res.weights), 1.0, atol=1e-8)
     end
 
     @testset "Already Realizable Set" begin
