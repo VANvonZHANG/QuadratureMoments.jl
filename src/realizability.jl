@@ -1,57 +1,55 @@
-"""
-    is_realizable(m::AbstractVector{T}) -> Bool
+using LinearAlgebra
+using StaticArrays
 
-检查矩序列的实现性（Realizability）。
-对于单变量分布，必要且充分条件是 Hankel 矩阵 H_n = [m_{i+j}] 为正定矩阵。
 """
-function is_realizable(m::AbstractVector{T}) where T
+    is_realizable(m::AbstractVector{T}; domain=:pos) -> Bool
+
+检查矩序列的实现性 (Realizability)。
+domain: 
+  - :all 表示 (-∞, ∞) [Hamburger moment problem]
+  - :pos 表示 [0, ∞) [Stieltjes moment problem] (默认)
+"""
+function is_realizable(m::AbstractVector{T}; domain=:pos) where T
     L = length(m)
-    N = (L ÷ 2) - 1
-    # 构建 Hankel 矩阵 (N+1)x(N+1)
-    # H[i, j] = m[i+j-1]
-    H = zeros(T, N+1, N+1)
-    for i in 1:N+1
-        for j in 1:N+1
-            idx = i + j - 2 + 1 # Julia 1-based indexing
-            H[i, j] = m[idx]
-        end
+    if L < 2 return true end
+    
+    # --- 1. Hamburger Condition: H_n is positive semi-definite ---
+    # n 是使得 2n <= L-1 的最大整数
+    n = (L - 1) ÷ 2
+    H = zeros(T, n+1, n+1)
+    for i in 0:n, j in 0:n
+        H[i+1, j+1] = m[i+j+1]
     end
     
-    # 对于 AbstractVector，Cholesky 失败可能意味着它是半正定的
-    # 在 QBMM 中，半正定（奇异）通常对应于 Delta 函数分布，也是可实现的
-    try
-        vals = eigvals(Symmetric(H))
-        return all(vals .> -sqrt(eps(T)))
-    catch e
+    vals = eigvals(Symmetric(H))
+    if any(vals .< -sqrt(eps(T)))
         return false
     end
+    
+    # 如果只检查全轴分布，到此为止
+    if domain == :all
+        return true
+    end
+    
+    # --- 2. Stieltjes Condition: H_n^(1) is positive semi-definite ---
+    # n_s 是使得 2n_s + 1 <= L-1 的最大整数
+    n_s = (L - 2) ÷ 2
+    H1 = zeros(T, n_s+1, n_s+1)
+    for i in 0:n_s, j in 0:n_s
+        H1[i+1, j+1] = m[i+j+2]
+    end
+    
+    vals1 = eigvals(Symmetric(H1))
+    if any(vals1 .< -sqrt(eps(T)))
+        return false
+    end
+    
+    return true
 end
 
 """
-    is_realizable(m::SVector{L, T}) -> Bool
-
-针对小规模矩序列优化的静态数组实现。
+    is_realizable(m::SVector{L, T}; domain=:pos)
 """
-function is_realizable(m::SVector{L, T}) where {L, T}
-    N_plus_1 = L ÷ 2
-    
-    # 使用 MMatrix 构造以避免分配
-    H_M = zeros(MMatrix{N_plus_1, N_plus_1, T})
-    for i in 1:N_plus_1
-        for j in 1:N_plus_1
-            idx = i + j - 2 + 1
-            H_M[i, j] = m[idx]
-        end
-    end
-    
-    H = SMatrix{N_plus_1, N_plus_1, T}(H_M)
-    
-    # 对于小矩阵，检查特征值是否全部大于零（带微小裕量）
-    try
-        # 对于边界情况（如单点分布），最小特征值可能接近 0
-        vals = eigvals(Symmetric(H))
-        return all(vals .> -sqrt(eps(T))) 
-    catch e
-        return false
-    end
+function is_realizable(m::SVector{L, T}; domain=:pos) where {L, T}
+    return is_realizable(collect(m); domain=domain)
 end
