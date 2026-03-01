@@ -8,7 +8,7 @@ abstract type AbstractQBMM end
 
 export AbstractQBMM
 export wheeler_inversion, pd_inversion, is_realizable
-export CQMOM, TensorQMOM, invert_moments
+export CQMOM, TensorQMOM, ECQMOM, invert_moments
 export EQMOM, GaussianKernel, GammaKernel, BetaKernel
 export dqmom_matrix, dqmom_solve
 
@@ -18,6 +18,7 @@ include("realizability.jl")
 include("cqmom.jl")
 include("tensor.jl")
 include("eqmom.jl")
+include("ecqmom.jl")
 include("dqmom.jl")
 
 end # module
