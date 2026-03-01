@@ -2,30 +2,48 @@
 
 """
     AbstractMathBackend
-    NativeBackend <: AbstractMathBackend
-    ExternalBackend <: AbstractMathBackend
 
-用于派发不同的数学计算后端。
+Abstract type for dispatching different mathematical computation backends.
+Used to separate high-performance kernels from generic implementations.
 """
 abstract type AbstractMathBackend end
-struct NativeBackend <: AbstractMathBackend end   # 极致性能，StaticArrays 实现
-struct ExternalBackend <: AbstractMathBackend end # 官方/通用库实现
+
+"""
+    NativeBackend <: AbstractMathBackend
+
+High-performance backend utilizing `StaticArrays.jl` and specialized \$O(n^2)\$ algorithms.
+Optimized for small-scale systems (\$N < 20\$) with zero-allocation targets.
+"""
+struct NativeBackend <: AbstractMathBackend end
+
+"""
+    ExternalBackend <: AbstractMathBackend
+
+Generic backend using standard Julia `LinearAlgebra` and standard `Array` types.
+Intended for verification, large systems, or generic types.
+"""
+struct ExternalBackend <: AbstractMathBackend end
 
 """
     AbstractQBMM{D, N}
 
-所有 QBMM 算法的基类。
-D: 维度，N: 节点数 (可以是整数或 Tuple)。
+Base abstract type for all Quadrature-Based Moment Methods.
+
+# Type Parameters
+- `D::Int`: Dimension of the internal coordinate space.
+- `N`: Number of quadrature nodes (can be `Int` or `Tuple` for multivariate).
 """
 abstract type AbstractQBMM{D, N} end
 
 """
     QuadratureResult{D, N, T}
 
-统一的反演结果结构体。
-- weights: 节点权重，大小为 N
-- nodes: 节点位置，大小为 (N, D)
-- sigmas: 连续核的带宽，大小为 (N, D)，离散核为 Nothing
+Standardized container for moment inversion results.
+
+# Fields
+- `weights::SVector{N, T}`: Quadrature weights, normalized to \$m_0\$.
+- `nodes::SMatrix{N, D, T}`: Positions of quadrature nodes in D-dimensional space.
+- `sigmas::Union{Nothing, SMatrix{N, D, T}}`: Bandwidth parameters for continuous kernels (EQMOM/ECQMOM).
 """
 struct QuadratureResult{D, N, T}
     weights::SVector{N, T}
@@ -33,8 +51,11 @@ struct QuadratureResult{D, N, T}
     sigmas::Union{Nothing, SMatrix{N, D, T}}
 end
 
-# 针对 N 是 Tuple 的情况 (如 CQMOM) 的辅助构造函数
-# 将元组展开为总节点数
+"""
+    QuadratureResult(weights, nodes, sigmas=nothing)
+
+Convenience constructor for `QuadratureResult`. Automatically infers dimensions and types.
+"""
 function QuadratureResult(w::SVector{N, T}, n::SMatrix{N, D, T}, s=nothing) where {D, N, T}
     return QuadratureResult{D, N, T}(w, n, s)
 end
