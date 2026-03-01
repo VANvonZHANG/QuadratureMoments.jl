@@ -6,6 +6,7 @@ using QBMM
 const suite = BenchmarkGroup()
 
 suite["Wheeler Inversion"] = BenchmarkGroup()
+suite["PD Inversion"] = BenchmarkGroup()
 suite["DQMOM Solve"] = BenchmarkGroup()
 
 # ---------------------------------------------------------
@@ -28,6 +29,10 @@ static_moments = SVector{2N, Float64}(base_moments)
 
 suite["Wheeler Inversion"]["Base Array"] = @benchmarkable wheeler_inversion($base_moments)
 suite["Wheeler Inversion"]["Static Array"] = @benchmarkable wheeler_inversion($static_moments)
+
+# PD Inversion
+suite["PD Inversion"]["Base Array"] = @benchmarkable pd_inversion($base_moments)
+suite["PD Inversion"]["Static Array"] = @benchmarkable pd_inversion($static_moments)
 
 # ---------------------------------------------------------
 # 2. DQMOM Benchmarks
@@ -70,8 +75,16 @@ println("
 
 println("2. Static Array Allocation & Time:")
 display(results["Wheeler Inversion"]["Static Array"])
-println("
-")
+println("\n")
+
+println("--- PD Inversion (QMOM) ---")
+println("1. Base Array Allocation & Time:")
+display(results["PD Inversion"]["Base Array"])
+println("\n")
+
+println("2. Static Array Allocation & Time:")
+display(results["PD Inversion"]["Static Array"])
+println("\n")
 
 println("--- DQMOM Linear System Solve ---")
 println("1. Base Array Allocation & Time:")
@@ -89,6 +102,10 @@ w_base_med = median(results["Wheeler Inversion"]["Base Array"]).time
 w_stat_med = median(results["Wheeler Inversion"]["Static Array"]).time
 w_speedup = w_base_med / w_stat_med
 
+pd_base_med = median(results["PD Inversion"]["Base Array"]).time
+pd_stat_med = median(results["PD Inversion"]["Static Array"]).time
+pd_speedup = pd_base_med / pd_stat_med
+
 dq_base_med = median(results["DQMOM Solve"]["Base Array"]).time
 dq_stat_med = median(results["DQMOM Solve"]["Static Array"]).time
 dq_speedup = dq_base_med / dq_stat_med
@@ -97,5 +114,6 @@ println("=========================================================")
 println("    Speedup Summary (StaticArray vs Base Array)")
 println("=========================================================")
 println("Wheeler Algorithm Speedup: $(round(w_speedup, digits=2))x")
+println("PD Algorithm Speedup:      $(round(pd_speedup, digits=2))x")
 println("DQMOM Solve Speedup:       $(round(dq_speedup, digits=2))x")
 println("=========================================================")

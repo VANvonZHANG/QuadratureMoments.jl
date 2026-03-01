@@ -17,199 +17,174 @@ EQMOM(N::Int) = EQMOM{N, GaussianKernel}(GaussianKernel())
 EQMOM(N::Int, kernel::K) where K<:AbstractKernel = EQMOM{N, K}(kernel)
 
 """
-    compute_modified_moments(m::AbstractVector{T}, σ::T, ::GaussianKernel)
-
-根据带宽 σ 计算修正矩 m^*，用于后续调用 Wheeler 算法。
-输入前 2N 个矩 (m_0 到 m_{2N-1})，返回对应的 2N 个修正矩。
+    compute_modified_moments(m::SVector{L, T}, σ::T, ::GaussianKernel)
 """
-function compute_modified_moments(m::AbstractVector{T}, σ::T, ::GaussianKernel) where T
-    N2 = length(m)
-    m_star = copy(m)
-    for k in 2:N2
+function compute_modified_moments(m::SVector{L, T}, σ::T, ::GaussianKernel) where {L, T}
+    m_star = MVector{L, T}(m)
+    for k in 2:L
+        k_idx = k - 1
         term_sum = zero(T)
-        for j in 1:floor(Int, (k-1)/2)
-            coeff = factorial(k-1) / (factorial(j) * factorial(k-1-2j) * 2^j)
-            term_sum += coeff * m_star[k-2j] * σ^(2j)
+        for j in 1:floor(Int, k_idx/2)
+            c = one(T)
+            for i in 0:(2j-1)
+                c *= (k_idx - i)
+            end
+            for i in 1:j
+                c /= (2*i)
+            end
+            term_sum += c * m_star[k-2j] * σ^(2j)
         end
         m_star[k] -= term_sum
     end
-    return m_star
+    return SVector{L, T}(m_star)
 end
 
 """
-    compute_modified_moments(m::AbstractVector{T}, σ::T, ::GammaKernel)
-
-根据带宽 σ 计算 Gamma 核的修正矩。其展开关系基于第一类无符号斯特林数。
+    compute_modified_moments(m::SVector{L, T}, σ::T, ::GammaKernel)
 """
-function compute_modified_moments(m::AbstractVector{T}, σ::T, ::GammaKernel) where T
-    L = length(m)
-    m_star = copy(m)
-    
-    # 预计算第一类无符号斯特林数 S(k, j)
-    S = zeros(T, L, L)
-    S[1, 1] = 1
+function compute_modified_moments(m::SVector{L, T}, σ::T, ::GammaKernel) where {L, T}
+    m_star_res = MVector{L, T}(m)
     for k in 2:L
+        k_val = k - 1
+        val = zero(T)
         for j in 1:k
-            if j == 1
-                S[k, j] = (k - 1) * S[k-1, j]
-            elseif j == k
-                S[k, j] = 1
-            else
-                S[k, j] = S[k-1, j-1] + (k - 1) * S[k-1, j]
+            j_val = j - 1
+            s_coeff = get_stirling1(k_val, j_val)
+            val += s_coeff * (σ^(k_val - j_val)) * m[j]
+        end
+        m_star_res[k] = val
+    end
+    return SVector{L, T}(m_star_res)
+end
+
+function get_stirling1(n::Int, k::Int)
+    if k < 0 || k > n return 0.0 end
+    if n == 0 return 1.0 end
+    return _stirling1_recursive(n, k)
+end
+
+function _stirling1_recursive(n::Int, k::Int)
+    if k == n return 1.0 end
+    if k == 0 || k > n return 0.0 end
+    # 简单的递归，对于小 n (n < 12) 性能尚可
+    return _stirling1_recursive(n-1, k-1) - (n-1) * _stirling1_recursive(n-1, k)
+end
+
+"""
+    compute_modified_moments(m::SVector{L, T}, σ::T, ::BetaKernel)
+"""
+function compute_modified_moments(m::SVector{L, T}, σ::T, ::BetaKernel) where {L, T}
+    m_prime = MVector{L, T}(m)
+    for k in 2:L
+        k_val = k - 1
+        prod_val = one(T)
+        for j in 0:(k_val-1)
+            prod_val *= (1 + j * σ)
+        end
+        m_prime[k] *= prod_val
+    end
+    return compute_modified_moments(SVector{L, T}(m_prime), σ, GammaKernel())
+end
+
+function reconstruct_moment(nodes::SVector{N, T}, weights::SVector{N, T}, k::Int, σ::T, ::GaussianKernel) where {N, T}
+    res = zero(T)
+    for i in 1:N
+        m_k = zero(T)
+        for j in 0:floor(Int, k/2)
+            c = one(T)
+            for m in 0:(2j-1) c *= (k - m) end
+            for m in 1:j c /= (2*m) end
+            m_k += c * (nodes[i]^(k-2j)) * σ^(2j)
+        end
+        res += weights[i] * m_k
+    end
+    return res
+end
+
+function reconstruct_moment(nodes::SVector{N, T}, weights::SVector{N, T}, k::Int, σ::T, ::GammaKernel) where {N, T}
+    res = zero(T)
+    for i in 1:N
+        p = one(T)
+        for j in 0:(k-1) p *= (nodes[i] + j * σ) end
+        res += weights[i] * p
+    end
+    return res
+end
+
+function reconstruct_moment(nodes::SVector{N, T}, weights::SVector{N, T}, k::Int, σ::T, ::BetaKernel) where {N, T}
+    res = zero(T)
+    den = one(T)
+    for j in 0:(k-1) den *= (1 + j * σ) end
+    for i in 1:N
+        p = one(T)
+        for j in 0:(k-1) p *= (nodes[i] + j * σ) end
+        res += weights[i] * (p / den)
+    end
+    return res
+end
+
+function invert_moments(method::EQMOM{N, K}, m::SVector{L, T}) where {N, K, T, L}
+    @assert L >= 2N + 1 "EQMOM requires 2N+1 moments"
+    
+    m0, m1, m2 = m[1], m[2], m[3]
+    var_total = max(1e-12, m2/m0 - (m1/m0)^2)
+    σ_max = sqrt(var_total)
+    
+    function residual(σ)
+        if σ < 0.0 return -1e10 end
+        if σ > σ_max return 1e10 end
+        
+        m_slice = SVector{2N, T}(m[1:2N])
+        m_star = compute_modified_moments(m_slice, σ, method.kernel)
+        
+        # 尝试反演并检查有效性
+        nodes, weights = try
+            res_nodes, res_weights = wheeler_inversion(m_star)
+            # 检查是否有 NaN 或权重是否全为正
+            if any(isnan, res_nodes) || any(isnan, res_weights) || any(w < -1e-10 for w in res_weights)
+                return 1e10
+            end
+            res_nodes, res_weights
+        catch
+            return 1e10
+        end
+        
+        m2N_pred = reconstruct_moment(nodes, weights, 2N, σ, method.kernel)
+        return m2N_pred - m[2N+1]
+    end
+
+    # 寻找根
+    σ_opt = 0.0
+    # 检查边界
+    r0 = residual(0.0)
+    rmax = residual(σ_max)
+    
+    if isnan(r0) || isnan(rmax) || r0 * rmax > 0
+        # 如果边界没有变号，尝试在中间寻找变号区间
+        # 因为 realizability 边界可能小于 σ_max
+        found = false
+        n_steps = 50
+        for i in 1:n_steps
+            s1 = (i-1) * σ_max / n_steps
+            s2 = i * σ_max / n_steps
+            rs1 = residual(s1)
+            rs2 = residual(s2)
+            if rs1 * rs2 <= 0 && rs1 < 1e9 && rs2 < 1e9
+                σ_opt = find_zero(residual, (s1, s2), Bisection())
+                found = true
+                break
             end
         end
-    end
-    
-    for k in 3:L
-        k_true = k - 1
-        term_sum = zero(T)
-        for j in 2:k-1
-            j_true = j - 1
-            term_sum += S[k_true, j_true] * σ^(k_true - j_true) * m_star[j]
+        if !found
+            # 尝试回退到 QMOM (σ=0)
+            σ_opt = 0.0
         end
-        m_star[k] = m[k] - term_sum
-    end
-    return m_star
-end
-
-"""
-    compute_modified_moments(m::AbstractVector{T}, σ::T, ::BetaKernel)
-
-根据带宽 σ 计算 Beta 核的修正矩。Beta 核在解析上可以通过缩放后复用 Gamma 核的逻辑来求得。
-"""
-function compute_modified_moments(m::AbstractVector{T}, σ::T, ::BetaKernel) where T
-    L = length(m)
-    m_scaled = copy(m)
-    
-    # 预先缩放 Beta 矩以匹配 Gamma 核的形式: m'_k = m_k * Π_{i=0}^{k-1}(1 + i*σ)
-    D = one(T)
-    for k in 1:L
-        k_true = k - 1
-        if k_true > 0
-            D *= (1 + (k_true - 1) * σ)
-        end
-        m_scaled[k] *= D
+    else
+        σ_opt = find_zero(residual, (0.0, σ_max), Bisection())
     end
     
-    # 使用缩放后的矩调用 Gamma 核逻辑
-    return compute_modified_moments(m_scaled, σ, GammaKernel())
-end
-
-"""
-    reconstruct_moment(nodes, weights, k_true, σ, kernel)
-
-根据反演的节点、权重和选定的核函数带宽 σ，重构出真实的第 k_true 阶矩（通常用来比对 2N 阶矩残差）。
-"""
-function reconstruct_moment(nodes::AbstractVector{T}, weights::AbstractVector{T}, k::Int, σ::T, ::GaussianKernel) where T
-    pred = zero(T)
-    N = length(nodes)
-    for a in 1:N
-        term_sum = zero(T)
-        for j in 0:floor(Int, k/2)
-            coeff = factorial(k) / (factorial(j) * factorial(k-2j) * 2^j)
-            term_sum += coeff * (nodes[a]^(k-2j)) * σ^(2j)
-        end
-        pred += weights[a] * term_sum
-    end
-    return pred
-end
-
-function reconstruct_moment(nodes::AbstractVector{T}, weights::AbstractVector{T}, k::Int, σ::T, ::GammaKernel) where T
-    pred = zero(T)
-    N = length(nodes)
-    for a in 1:N
-        term_prod = one(T)
-        for i in 0:k-1
-            term_prod *= (nodes[a] + i * σ)
-        end
-        pred += weights[a] * term_prod
-    end
-    return pred
-end
-
-function reconstruct_moment(nodes::AbstractVector{T}, weights::AbstractVector{T}, k::Int, σ::T, ::BetaKernel) where T
-    pred = zero(T)
-    N = length(nodes)
-    
-    D = one(T)
-    for i in 0:k-1
-        D *= (1 + i * σ)
-    end
-    
-    for a in 1:N
-        term_prod = one(T)
-        for i in 0:k-1
-            term_prod *= (nodes[a] + i * σ)
-        end
-        pred += weights[a] * (term_prod / D)
-    end
-    return pred
-end
-
-"""
-    invert_moments(method::EQMOM{N, GaussianKernel}, m::AbstractVector{T})
-
-执行 EQMOM 反演过程：
-输入 2N+1 个矩序列 (m_0 到 m_{2N})。
-寻找最优带宽 σ 使得系统闭合。
-"""
-function invert_moments(method::EQMOM{N, K}, m::AbstractVector{T}) where {N, K, T}
-    @assert length(m) >= 2N + 1 "EQMOM with N=$N requires at least $(2N+1) moments."
-    
-    # σ 的搜索范围通常从 0 到 sqrt(Var)
-    m0, m1, m2 = m[1], m[2], m[3]
-    var_sys = max(0.0, m2/m0 - (m1/m0)^2)
-    # 对于 Beta 分布，σ 可以更大，增加一个保底的上限 1.0 以扩大搜索网络
-    max_σ = max(sqrt(var_sys), 1.0)
-    
-    if max_σ <= 1e-12
-        nodes, weights = wheeler_inversion(m[1:2N])
-        return nodes, weights, 0.0
-    end
-
-    # 残差函数: R(σ) = m_2N - \sum w_a * \mu_{2N}(\xi_a, σ)
-    function residual(σ)
-        # 1. 基于当前 σ 获取前 2N 个修正矩，并进行 Wheeler 反演
-        m_star = compute_modified_moments(m[1:2N], σ, method.kernel)
-        
-        nodes, weights = try
-            wheeler_inversion(m_star)
-        catch
-            return NaN
-        end
-        
-        # 2. 根据节点和权重重建第 2N 阶矩 (m[2N+1])
-        pred_m2N = reconstruct_moment(nodes, weights, 2N, σ, method.kernel)
-        
-        return pred_m2N - m[2N+1]
-    end
-
-    # 在 [0, max_σ] 之间使用二分法或类似的容错算法寻找根
-    # 为了避免反演引发 NaN 导致报错，使用简单的网格搜索结合二分
-    # 找到第一次发生符号变化的地方
-    num_intervals = 20
-    dσ = max_σ / num_intervals
-    
-    root_σ = 0.0
-    for i in 0:(num_intervals-1)
-        s1, s2 = i*dσ, (i+1)*dσ
-        r1, r2 = residual(s1), residual(s2)
-        if !isnan(r1) && !isnan(r2) && r1 * r2 <= 0
-            # 找到符号交叉点，交给 find_zero
-            root_σ = find_zero(residual, (s1, s2), Bisection())
-            break
-        end
-    end
-    
-    if root_σ == 0.0
-        # 默认回退（如果没有找到，返回退化解）
-        nodes, weights = wheeler_inversion(m[1:2N])
-        return nodes, weights, 0.0
-    end
-
-    # 使用求得的 root_σ 进行最终反演
-    m_star_final = compute_modified_moments(m[1:2N], root_σ, method.kernel)
+    m_slice_final = SVector{2N, T}(m[1:2N])
+    m_star_final = compute_modified_moments(m_slice_final, σ_opt, method.kernel)
     nodes, weights = wheeler_inversion(m_star_final)
-    
-    return nodes, weights, root_σ
+    return nodes, weights, σ_opt
 end

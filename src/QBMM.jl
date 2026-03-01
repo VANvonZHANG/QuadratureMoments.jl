@@ -7,12 +7,13 @@ using StaticArrays
 abstract type AbstractQBMM end
 
 export AbstractQBMM
-export wheeler_inversion, is_realizable
+export wheeler_inversion, pd_inversion, is_realizable
 export CQMOM, invert_moments
 export EQMOM, GaussianKernel, GammaKernel, BetaKernel
 export dqmom_matrix, dqmom_solve
 
 include("wheeler.jl")
+include("pd.jl")
 include("realizability.jl")
 include("cqmom.jl")
 include("eqmom.jl")
