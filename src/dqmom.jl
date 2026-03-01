@@ -10,7 +10,7 @@ using StaticArrays
 其中 a_i = dw_i/dt, b_i = d(w_i * xi_i)/dt。
 """
 function dqmom_matrix(nodes::SVector{N, T}) where {N, T}
-    A_elements = zeros(MMatrix{2N, 2N, T})
+    A_elements = zero(MMatrix{2N, 2N, T})
     
     for k in 0:(2N - 1)
         row = k + 1
@@ -83,8 +83,8 @@ function dqmom_solve(nodes::SVector{N, T}, source_terms::SVector{L, T}) where {N
     # 对于小规模固定矩阵，使用 \ (会调用 LU 分解的优化版本)
     x = A \ source_terms
     
-    a = SVector{N, T}(x[1:N])
-    b = SVector{N, T}(x[N+1:2N])
+    a = SVector{N, T}(ntuple(i -> x[i], Val(N)))
+    b = SVector{N, T}(ntuple(i -> x[i+N], Val(N)))
     return a, b
 end
 

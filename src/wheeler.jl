@@ -42,11 +42,15 @@ end
 设计，最大程度消除堆内存分配并提升性能。
 """
 function wheeler_inversion(m::SVector{L, T}) where {L, T}
-    N = L ÷ 2
-    
+    return _wheeler_inversion(m, Val(L ÷ 2))
+end
+
+function _wheeler_inversion(m::SVector{L, T}, ::Val{N}) where {L, T, N}
     a = MVector{N, T}(undef)
     b = MVector{N, T}(undef)
-    sigma = zeros(MMatrix{N+1, L, T})
+    # Using L directly to avoid N+1 issues, or just use N+1 since N is now known!
+    # Let's use N+1 for rows.
+    sigma = zero(MMatrix{N+1, L, T})
     
     for i in 1:L
         sigma[2, i] = m[i]
@@ -65,7 +69,7 @@ function wheeler_inversion(m::SVector{L, T}) where {L, T}
     end
     
     # Construct dense symmetric matrix for eigen decomposition
-    J_M = zeros(MMatrix{N, N, T})
+    J_M = zero(MMatrix{N, N, T})
     for i in 1:N
         J_M[i, i] = a[i]
     end
