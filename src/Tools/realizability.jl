@@ -3,7 +3,7 @@ using LinearAlgebra
 using StaticArrays
 using ..QBMM: AbstractMathBackend, NativeBackend, ExternalBackend, hankel_matrix
 
-"""
+raw"""
     is_realizable(m::AbstractVector; domain=:pos, backend=NativeBackend()) -> Bool
 
 Check the realizability of a moment sequence \$m_0, m_1, \\dots, m_L\$.
@@ -20,7 +20,7 @@ function \$n(\\xi) \\ge 0\$ that produces these moments.
 
 # Returns
 - `true` if the sequence is realizable within the specified domain, `false` otherwise.
-"""
+raw"""
 function is_realizable(
     m::AbstractVector{T};
     domain=:pos,
@@ -50,9 +50,9 @@ function is_realizable(
     return is_psd(H1, T)
 end
 
-"""
+raw"""
     is_realizable(m::StaticVector; domain=:pos, backend=NativeBackend())
-"""
+raw"""
 @inline function is_realizable(
     m::StaticVector{L, T};
     domain=:pos,
@@ -81,12 +81,12 @@ end
     return is_psd(H1, T)
 end
 
-"""
+raw"""
     is_psd(H::AbstractMatrix, T) -> Bool
 
 Internal helper to check if a matrix is Positive Semi-Definite (PSD).
 Uses eigenvalue analysis with a tolerance of \$-\\sqrt{\\epsilon}\$.
-"""
+raw"""
 @inline function is_psd(H::AbstractMatrix{T}, ::Type{T}) where {T}
     # For small matrices, eigvals is robust
     vals = eigvals(Symmetric(H))

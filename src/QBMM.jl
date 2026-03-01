@@ -1,13 +1,13 @@
 module QBMM
 
-"""
+raw"""
     QBMM
 
 A high-performance Julia library for Quadrature-Based Moment Methods.
 Optimized for industrial-grade CFD solvers with zero-allocation execution paths.
 
 See [README.md](README.md) for detailed usage and algorithms.
-"""
+raw"""
 
 using LinearAlgebra
 using StaticArrays
@@ -54,7 +54,7 @@ export is_realizable, mcgraw_correction
 
 # --- 7. Main API ---
 
-"""
+raw"""
     invert_moments(method::AbstractQBMM, moments; backend=NativeBackend()) -> QuadratureResult
 
 Perform moment inversion using the specified QBMM algorithm.
@@ -73,7 +73,7 @@ using QBMM, StaticArrays
 m = @SVector [1.0, 5.0, 26.0, 140.0]
 res = invert_moments(Wheeler(2), m)
 ```
-"""
+raw"""
 function invert_moments end
 export invert_moments
 

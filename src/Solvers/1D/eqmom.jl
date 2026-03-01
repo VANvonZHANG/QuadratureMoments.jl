@@ -7,7 +7,7 @@ using ..QBMM: AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend,
 using ..QBMM: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
 using ..QBMM: stirling2, reconstruct_moment, Wheeler
 
-"""
+raw"""
     EQMOM{N, K} <: AbstractQBMM{1, N}
 
 Extended Quadrature-Based Moment Method (1D).
@@ -19,23 +19,23 @@ Density Function (NDF) using a set of non-negative continuous kernel functions
 # Type Parameters
 - `N::Int`: Number of primary quadrature nodes.
 - `K<:AbstractKernel`: The continuous kernel type.
-"""
+raw"""
 struct EQMOM{N, K<:AbstractKernel} <: AbstractQBMM{1, N}
     kernel::K
 end
 
-"""
+raw"""
     EQMOM(N::Int)
     EQMOM(N::Int, kernel::AbstractKernel)
 
 Constructors for the EQMOM solver. Defaults to `GaussianKernel()`.
-"""
+raw"""
 EQMOM(N::Int) = EQMOM{N, GaussianKernel}(GaussianKernel())
 EQMOM(N::Int, kernel::K) where {K<:AbstractKernel} = EQMOM{N, K}(kernel)
 
 # --- Modified Moments API ---
 
-"""
+raw"""
     compute_modified_moments(m, σ, kernel, backend) -> SVector
 
 Compute the modified moments \$m^*_k\$ by mapping raw moments into the orthogonal 
@@ -49,7 +49,7 @@ space of the specified kernel.
 
 # Returns
 - A vector of modified moments.
-"""
+raw"""
 function compute_modified_moments(
     m::SVector{L, T},
     σ::T,
@@ -116,7 +116,7 @@ end
 
 # --- Main API ---
 
-"""
+raw"""
     invert_moments(method::EQMOM, m; backend=NativeBackend()) -> QuadratureResult
 
 Perform 1D EQMOM inversion.
@@ -131,7 +131,7 @@ the reconstruction of the \$(2N+1)\$-th moment matches the target exactly.
 
 # Returns
 - A `QuadratureResult` containing weights, primary nodes, and \$\\sigma\$ parameters.
-"""
+raw"""
 function invert_moments(
     method::EQMOM{N, K},
     m::SVector{L, T};

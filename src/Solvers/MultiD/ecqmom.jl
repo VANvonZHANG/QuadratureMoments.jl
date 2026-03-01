@@ -6,7 +6,7 @@ using ..QBMM: AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend,
 using ..QBMM: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
 using ..QBMM: EQMOM, solve_vandermonde_transpose, compute_modified_moments
 
-"""
+raw"""
     ECQMOM{D, N, NT, K} <: AbstractQBMM{D, NT}
 
 Extended Conditional Quadrature-Based Moment Method.
@@ -19,17 +19,17 @@ with the recursive conditional decomposition of CQMOM.
 - `N::NTuple{D, Int}`: Nodes per dimension.
 - `NT::Int`: Total number of resulting nodes (`prod(N)`).
 - `K<:AbstractKernel`: The continuous kernel type.
-"""
+raw"""
 struct ECQMOM{D, N, NT, K<:AbstractKernel} <: AbstractQBMM{D, NT}
     kernel::K
 end
 
-"""
+raw"""
     ECQMOM(N::NTuple{D, Int}, kernel=GaussianKernel())
     ECQMOM(D::Int, N_per_dim::Int, kernel=GaussianKernel())
 
 Constructors for the ECQMOM solver.
-"""
+raw"""
 function ECQMOM(N::NTuple{D, Int}, kernel::K=GaussianKernel()) where {D, K<:AbstractKernel}
     return ECQMOM{D, N, prod(N), K}(kernel)
 end
@@ -39,7 +39,7 @@ function ECQMOM(D::Int, N_per_dim::Int, kernel::K=GaussianKernel()) where {K<:Ab
     return ECQMOM(N, kernel)
 end
 
-"""
+raw"""
     invert_moments(method::ECQMOM, m; backend=NativeBackend()) -> QuadratureResult
 
 Perform multivariate ECQMOM inversion.
@@ -51,7 +51,7 @@ Perform multivariate ECQMOM inversion.
 
 # Returns
 - A `QuadratureResult` containing weights, \$D\$-dimensional primary nodes, and \$\\sigma\$ parameters.
-"""
+raw"""
 function invert_moments(
     method::ECQMOM{D, N, NT, K},
     m::SArray{S, T, D, L};

@@ -2,7 +2,7 @@
 using LinearAlgebra
 using StaticArrays
 
-"""
+raw"""
     Wheeler{N} <: AbstractQBMM{1, N}
 
 The Wheeler algorithm for 1D moment inversion.
@@ -13,17 +13,17 @@ corresponding tridiagonal Jacobi matrix.
 
 # Type Parameters
 - `N::Int`: Number of quadrature nodes to reconstruct.
-"""
+raw"""
 struct Wheeler{N} <: AbstractQBMM{1, N} end
 
-"""
+raw"""
     Wheeler(N::Int)
 
 Constructor for the Wheeler algorithm with `N` nodes.
-"""
+raw"""
 Wheeler(N::Int) = Wheeler{N}()
 
-"""
+raw"""
     invert_moments(method::Wheeler{N}, moments; backend=NativeBackend()) -> QuadratureResult
 
 Perform 1D Wheeler inversion.
@@ -39,7 +39,7 @@ to maintain stability, returning \$k \\le N\$ valid nodes.
 
 # Returns
 - A `QuadratureResult` containing weights and nodes.
-"""
+raw"""
 function invert_moments(
     method::Wheeler{N},
     m::SVector{L, T};
@@ -63,11 +63,11 @@ end
 
 # --- Internal Implementations ---
 
-"""
+raw"""
     _wheeler_dynamic(m, N_max, backend; tol=1e-14)
 
 Internal dynamic implementation for the Wheeler algorithm.
-"""
+raw"""
 function _wheeler_dynamic(
     m::AbstractVector{T},
     N_max::Int,
@@ -130,11 +130,11 @@ function _wheeler_dynamic(
     return nodes, weights
 end
 
-"""
+raw"""
     _adaptive_wheeler_static(m, Val(N_max), backend; tol=1e-14)
 
 Internal zero-allocation static implementation for the Wheeler algorithm.
-"""
+raw"""
 function _adaptive_wheeler_static(
     m::SVector{L, T},
     ::Val{N_max},

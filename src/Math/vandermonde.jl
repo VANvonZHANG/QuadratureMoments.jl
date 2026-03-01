@@ -2,7 +2,7 @@
 using StaticArrays
 using LinearAlgebra
 
-"""
+raw"""
     solve_vandermonde(x::AbstractVector, b::AbstractVector, backend)
 
 Solve the primal Vandermonde system \$V c = b\$, where \$V_{i,j} = x_i^{j-1}\$.
@@ -17,7 +17,7 @@ is implemented using the \$O(N^2)\$ Björck-Pereyra algorithm for zero-allocatio
 
 # Returns
 - A vector `c` of coefficients matching the type of `b`.
-"""
+raw"""
 @inline function solve_vandermonde(
     x::SVector{N, T},
     b::SVector{N, T},
@@ -37,7 +37,7 @@ is implemented using the \$O(N^2)\$ Björck-Pereyra algorithm for zero-allocatio
     return SVector{N, T}(c)
 end
 
-"""
+raw"""
     solve_vandermonde_transpose(x::AbstractVector, b::AbstractVector, backend)
 
 Solve the dual (transposed) Vandermonde system \$V^T c = b\$, where \$(V^T)_{i,j} = x_j^{i-1}\$.
@@ -52,7 +52,7 @@ In `NativeBackend`, this utilizes a stable \$O(N^2)\$ algorithm.
 
 # Returns
 - A vector `c` of weights/coefficients matching the type of `b`.
-"""
+raw"""
 @inline function solve_vandermonde_transpose(
     x::SVector{N, T},
     b::SVector{N, T},

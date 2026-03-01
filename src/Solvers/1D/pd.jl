@@ -2,24 +2,24 @@
 using LinearAlgebra
 using StaticArrays
 
-"""
+raw"""
     PD{N} <: AbstractQBMM{1, N}
     
 The Product-Difference (PD) algorithm for 1D moment inversion.
 
 # Type Parameters
 - `N::Int`: Number of quadrature nodes to reconstruct.
-"""
+raw"""
 struct PD{N} <: AbstractQBMM{1, N} end
 
-"""
+raw"""
     PD(N::Int)
 
 Constructor for the Product-Difference algorithm with `N` nodes.
-"""
+raw"""
 PD(N::Int) = PD{N}()
 
-"""
+raw"""
     invert_moments(method::PD{N}, m; backend=NativeBackend()) -> QuadratureResult
 
 Perform 1D Product-Difference inversion.
@@ -31,7 +31,7 @@ Perform 1D Product-Difference inversion.
 
 # Returns
 - A `QuadratureResult` containing weights and nodes.
-"""
+raw"""
 function invert_moments(
     method::PD{N},
     m::AbstractVector{T};

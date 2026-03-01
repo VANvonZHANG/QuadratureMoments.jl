@@ -4,7 +4,7 @@ using LinearAlgebra
 using StaticArrays
 using ..QBMM: AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
 
-"""
+raw"""
     DQMOM{N} <: AbstractQBMM{1, N}
 
 Direct Quadrature Method of Moments for tracking evolution of weights and nodes.
@@ -15,17 +15,17 @@ and weighted nodes.
 
 # Type Parameters
 - `N::Int`: Number of quadrature nodes.
-"""
+raw"""
 struct DQMOM{N} <: AbstractQBMM{1, N} end
 
-"""
+raw"""
     DQMOM(N::Int)
 
 Constructor for the DQMOM solver.
-"""
+raw"""
 DQMOM(N::Int) = DQMOM{N}()
 
-"""
+raw"""
     dqmom_matrix(nodes, backend=NativeBackend()) -> Matrix/SMatrix
 
 Construct the \$2N \times 2N\$ coefficient matrix \$A\$ for the DQMOM system.
@@ -39,7 +39,7 @@ The system is defined as \$A \mathbf{x} = \mathbf{S}\$, where
 
 # Returns
 - The coefficient matrix \$A\$.
-"""
+raw"""
 @inline dqmom_matrix(
     nodes::AbstractVector,
     backend::AbstractMathBackend=NativeBackend(),
@@ -107,7 +107,7 @@ function _dqmom_matrix_external(nodes::AbstractVector{T}) where {T}
     return A
 end
 
-"""
+raw"""
     dqmom_solve(method, nodes, source_terms; backend=NativeBackend()) -> (da, db)
 
 Solve the DQMOM system to obtain evolution rates.
@@ -121,7 +121,7 @@ Solve the DQMOM system to obtain evolution rates.
 # Returns
 - `da`: Rates of change for weights \$w_i\$.
 - `db`: Rates of change for weighted nodes \$(w_i \xi_i)\$.
-"""
+raw"""
 function dqmom_solve(
     ::DQMOM{N},
     nodes::SVector{N, T},

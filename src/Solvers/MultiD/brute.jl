@@ -3,7 +3,7 @@ using LinearAlgebra
 using StaticArrays
 using ForwardDiff
 
-"""
+raw"""
     BruteQMOM{D, N} <: AbstractQBMM{D, N}
 
 Brute-force multi-dimensional moment inversion.
@@ -15,17 +15,17 @@ automatic differentiation (`ForwardDiff.jl`).
 # Type Parameters
 - `D::Int`: Dimensions of the coordinate space.
 - `N::Int`: Number of multi-dimensional quadrature nodes.
-"""
+raw"""
 struct BruteQMOM{D, N} <: AbstractQBMM{D, N} end
 
-"""
+raw"""
     BruteQMOM(D::Int, N::Int)
 
 Constructor for the BruteQMOM solver.
-"""
+raw"""
 BruteQMOM(D::Int, N::Int) = BruteQMOM{D, N}()
 
-"""
+raw"""
     invert_moments(method::BruteQMOM, m::SArray; kwargs...) -> QuadratureResult
 
 Perform brute-force Newton-Raphson moment inversion.
@@ -39,7 +39,7 @@ Perform brute-force Newton-Raphson moment inversion.
 
 # Returns
 - A `QuadratureResult` containing weights and nodes.
-"""
+raw"""
 function invert_moments(
     ::BruteQMOM{D, N},
     m::SArray{S, T, D};

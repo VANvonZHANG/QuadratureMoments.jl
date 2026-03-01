@@ -3,7 +3,7 @@
 using LinearAlgebra
 using StaticArrays
 
-"""
+raw"""
     hankel_matrix(m, n, backend; offset=0)
 
 Construct a \$(n+1) \times (n+1)\$ Hankel matrix from a moment sequence.
@@ -18,7 +18,7 @@ The matrix is defined as \$H_{i,j} = m_{i+j+offset}\$ (using 0-based indexing fo
 
 # Returns
 - A Hankel matrix of type `Matrix{T}` or `SMatrix{n+1, n+1, T}`.
-"""
+raw"""
 function hankel_matrix(m::AbstractVector{T}, n::Int, ::ExternalBackend; offset=0) where {T}
     H = zeros(T, n + 1, n + 1)
     for i in 0:n, j in 0:n

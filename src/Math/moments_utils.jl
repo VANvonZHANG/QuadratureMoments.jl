@@ -3,7 +3,7 @@
 using StaticArrays
 using ..QBMM: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
 
-"""
+raw"""
     reconstruct_moment(nodes, weights, k, sigma, kernel) -> Float64
 
 Reconstruct the \$k\$-th order moment from an EQMOM continuous distribution.
@@ -17,7 +17,7 @@ Reconstruct the \$k\$-th order moment from an EQMOM continuous distribution.
 
 # Returns
 - The reconstructed moment of type `T`.
-"""
+raw"""
 function reconstruct_moment(
     nodes::SMatrix{N, 1, T},
     weights::SVector{N, T},

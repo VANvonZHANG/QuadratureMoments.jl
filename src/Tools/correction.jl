@@ -4,7 +4,7 @@ using LinearAlgebra
 using StaticArrays
 using ..QBMM: AbstractMathBackend, NativeBackend, ExternalBackend, is_realizable
 
-"""
+raw"""
     mcgraw_correction(m::AbstractVector; max_iter=20, backend=NativeBackend()) -> corrected_m
 
 Correct a moment sequence \$m_0, m_1, \\dots, m_L\$ to a realizable region.
@@ -21,7 +21,7 @@ non-realizable after `max_iter`.
 
 # Returns
 - A realizable moment sequence of the same length and type.
-"""
+raw"""
 function mcgraw_correction(
     m::AbstractVector{T};
     max_iter=20,
@@ -97,9 +97,9 @@ function mcgraw_correction(
     return (backend isa NativeBackend) ? SVector{L, T}(m_curr) : m_curr
 end
 
-"""
+raw"""
     mcgraw_correction(m::StaticVector; max_iter=20, backend=NativeBackend())
-"""
+raw"""
 @inline function mcgraw_correction(
     m::StaticVector{L, T};
     max_iter=20,
@@ -191,7 +191,7 @@ end
     return SVector{L, T}(m_curr)
 end
 
-"""
+raw"""
     wright_fallback(m, backend)
 
 Reconstruct moments using a log-normal distribution (Wright algorithm).
@@ -203,7 +203,7 @@ distribution and calculates higher-order moments from it.
 # Arguments
 - `m`: Input moment sequence.
 - `backend`: Backend to use for computation.
-"""
+raw"""
 function wright_fallback(m::AbstractVector{T}, ::ExternalBackend) where {T}
     L = length(m)
     m_res = copy(m)

@@ -5,7 +5,7 @@ using StaticArrays
 using ..QBMM: AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend, QuadratureResult
 using ..QBMM: Wheeler, solve_vandermonde_transpose
 
-"""
+raw"""
     CQMOM{D, N, NT} <: AbstractQBMM{D, NT}
 
 Conditional Quadrature-Based Moment Method (Discrete).
@@ -18,15 +18,15 @@ and deconvolution via transposed Vandermonde systems.
 - `D::Int`: Dimensions of the coordinate space.
 - `N::NTuple{D, Int}`: Nodes per dimension (e.g., `(2, 3)` for 2D).
 - `NT::Int`: Total nodes in the result (`prod(N)`).
-"""
+raw"""
 struct CQMOM{D, N, NT} <: AbstractQBMM{D, NT} end
 
-"""
+raw"""
     CQMOM(N::NTuple{D, Int})
     CQMOM(D::Int, N_per_dim::Int)
 
 Constructors for the CQMOM solver.
-"""
+raw"""
 function CQMOM(N::NTuple{D, Int}) where {D}
     return CQMOM{D, N, prod(N)}()
 end
@@ -36,7 +36,7 @@ function CQMOM(D::Int, N_per_dim::Int)
     return CQMOM(N)
 end
 
-"""
+raw"""
     invert_moments(method::CQMOM, moments; backend=NativeBackend()) -> QuadratureResult
 
 Perform multivariate CQMOM inversion using recursive decomposition.
@@ -51,7 +51,7 @@ For a 2D problem, moments should be provided as a 2D `SArray` or `Matrix`.
 
 # Returns
 - A `QuadratureResult` containing weights and a matrix of \$D\$-dimensional nodes.
-"""
+raw"""
 function invert_moments(
     ::CQMOM{D, N, NT},
     m::SArray{S, T, D, L};

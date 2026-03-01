@@ -2,7 +2,7 @@
 using LinearAlgebra
 using StaticArrays
 
-"""
+raw"""
     TensorQMOM{D, N_tuple, N_total} <: AbstractQBMM{D, N_total}
 
 Tensor-product Quadrature-Based Moment Method.
@@ -16,19 +16,19 @@ quadrature via a Cartesian product.
 - `D::Int`: Dimensions of the coordinate space.
 - `N_tuple::NTuple{D, Int}`: Nodes per dimension.
 - `N_total::Int`: Total nodes in the result (`prod(N)`).
-"""
+raw"""
 struct TensorQMOM{D, N_tuple, N_total} <: AbstractQBMM{D, N_total} end
 
-"""
+raw"""
     TensorQMOM(N::NTuple{D, Int})
     TensorQMOM(D::Int, N_per_dim::Int)
 
 Constructors for the TensorQMOM solver.
-"""
+raw"""
 TensorQMOM(N::NTuple{D, Int}) where {D} = TensorQMOM{D, N, prod(N)}()
 TensorQMOM(D::Int, N_per_dim::Int) = TensorQMOM(ntuple(i -> N_per_dim, D))
 
-"""
+raw"""
     invert_moments(method::TensorQMOM, m::SArray; backend=NativeBackend()) -> QuadratureResult
 
 Perform Tensor-product moment inversion.
@@ -40,7 +40,7 @@ Perform Tensor-product moment inversion.
 
 # Returns
 - A `QuadratureResult` containing the combined weights and nodes.
-"""
+raw"""
 function invert_moments(
     method::TensorQMOM{D, N_tuple, N_total},
     m::SArray{S, T, D};
