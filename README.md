@@ -53,7 +53,7 @@ Standard QMOM represents the NDF as a sum of Dirac delta functions. **EQMOM** ex
 - **Strict Zero-Allocation**: Core solvers utilize `StaticArrays.jl` and `Val{N}` static dispatch to ensure no heap allocations occur during inversion loops.
 - **Unified API**: Every method implements `invert_moments(method, moments)`, returning a standardized `QuadratureResult`.
 - **Numerical Robustness**: Adaptive rank reduction and moment repair algorithms.
-- **Dual-Backend Support**: `NativeBackend()` (optimized $O(n^2)$ solvers) and `ExternalBackend()` (Standard Library).
+- **Dual-Backend Support**: `NativeBackend()` (optimized $O(n^2)$ solvers with zero-allocation) and `ExternalBackend()` (Standard Library).
 
 ---
 
@@ -64,7 +64,7 @@ Standard QMOM represents the NDF as a sum of Dirac delta functions. **EQMOM** ex
 using QBMM, StaticArrays
 
 m = @SVector [1.0, 5.0, 26.0, 140.0] 
-method = Wheeler(2)
+method = Wheeler(2) # Or Wheeler{2}() for static dispatch
 res = invert_moments(method, m)
 # res.weights -> [0.5, 0.5], res.nodes -> [4.0, 6.0]
 ```
@@ -74,8 +74,8 @@ res = invert_moments(method, m)
 ## 6. Performance Guide
 To achieve the best performance in high-frequency loops:
 1. **Use `StaticArrays`**: Provide moments as `SVector` or `SMatrix`.
-2. **Prefer `NativeBackend`**: Uses specialized $O(n^2)$ Björck-Pereyra solvers.
-3. **Static Dispatch**: If $N$ is fixed, use the parametric constructor `Wheeler{N}()`.
+2. **Prefer `NativeBackend`**: Uses specialized $O(n^2)$ Björck-Pereyra and Hankel-based solvers for zero-allocation performance.
+3. **Static Dispatch**: If $N$ is fixed, use the parametric constructor `Wheeler{N}()` to help the compiler unroll loops.
 
 ---
 
@@ -83,17 +83,20 @@ To achieve the best performance in high-frequency loops:
 
 ### 7.1 The Unified Inversion Interface
 `invert_moments(method::AbstractQBMM, moments::SArray; backend=NativeBackend())`
-- **Returns**: `QuadratureResult{D, N, T}` containing `.weights`, `.nodes`, and optional `.sigmas`.
+- **Returns**: `QuadratureResult{D, N, T}` containing:
+  - `.weights`: `SVector{N, T}` of quadrature weights.
+  - `.nodes`: `SMatrix{N, D, T}` of quadrature nodes.
+  - `.sigmas`: Optional bandwidth parameter (for EQMOM), otherwise `nothing`.
 
 ### 7.2 Solvers
 - `Wheeler(N)`, `PD(N)`: Univariate solvers.
 - `EQMOM(N, kernel)`: Continuous kernels (`GaussianKernel()`, `GammaKernel()`, `BetaKernel()`).
 - `CQMOM(N_tuple)`, `ECQMOM(N_tuple, kernel)`: Multivariate solvers.
-- `DQMOM(N)`: Utilities for direct tracking.
+- `DQMOM(N)`: Utilities for direct tracking. `dqmom_solve(method, nodes, source_terms)` returns evolution rates `(da, db)`.
 
 ### 7.3 Robustness Tools
-- `is_realizable(m; domain=:pos)`
-- `mcgraw_correction(m)`
+- `is_realizable(m; domain=:pos, backend=NativeBackend())`
+- `mcgraw_correction(m; backend=NativeBackend())`
 
 ---
 
