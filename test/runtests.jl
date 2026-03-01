@@ -7,4 +7,5 @@ using QBMM
     include("test_cqmom.jl")
     include("test_eqmom.jl")
     include("test_dqmom.jl")
+    include("test_dqmom_forwarddiff.jl")
 end
