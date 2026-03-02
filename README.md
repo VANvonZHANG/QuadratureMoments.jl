@@ -22,7 +22,7 @@ Pkg.add(url="https://github.com/yourusername/QBMM.jl.git")
 ---
 
 ## 2. Project Positioning
-In the simulation of multiphase flows (e.g., sprays, aerosols, crystallization), the evolution of the Number Density Function (NDF) is governed by the **Generalized Population Balance Equation (GPBE)**. `QBMM.jl` provides the mathematical "engine" to close the moment-transport equations derived from the GPBE, allowing users to reconstruct distributions from their transportable moments.
+In the simulation of multiphase flows (e.g., sprays, aerosols, crystallization), the evolution of the Number Density Function (NDF) is governed by the **Generalized Population Balance Equation (GPBE)**. `QBMM.jl` provides both the mathematical "engine" (moment inversion algorithms) and the physical closure models (source terms) to close the moment-transport equations derived from the GPBE. This allows CFD software to seamlessly reconstruct distributions and calculate the advection and reaction of the disperse phase.
 
 ## 3. Mathematical Background
 This library implements the core algorithms described in **Marchisio & Fox (2013)**. The primary challenge in QBMM is the **Moment Inversion Problem**: finding a quadrature approximation (weights $w_\alpha$ and nodes $\xi_\alpha$) that matches a set of known moments $m_k = \int \xi^k n(\xi) d\xi$.
@@ -47,11 +47,17 @@ Standard QMOM represents the NDF as a sum of Dirac delta functions. **EQMOM** ex
 - **McGraw Correction**: Repairs corrupted moments by maximizing the smoothness of $\ln(m_k)$.
 - **Wright Correction**: Fallback log-normal reconstruction for highly corrupted sequences.
 
+### 3.6 Physical Source Terms (Closures)
+The library provides zero-allocation calculation of the moment source terms ($S_k = dm_k/dt$) for various microscale physical processes:
+- **Phase-space advection**: Continuous `ParticleGrowth` and `ParticleShrinkage` (evaporation/dissolution).
+- **Point processes (0th, 1st, 2nd order)**: `Nucleation`, `Deposition`, `Breakage`, and `Aggregation`.
+These physical processes can be intuitively superposed using the `+` operator, which resolves into a highly optimized, allocation-free loop at compile-time.
+
 ---
 
 ## 4. Core Features
-- **Strict Zero-Allocation**: Core solvers utilize `StaticArrays.jl` and `Val{N}` static dispatch to ensure no heap allocations occur during inversion loops.
-- **Unified API**: Every method implements `invert_moments(method, moments)`, returning a standardized `QuadratureResult`.
+- **Strict Zero-Allocation**: Both the core inversion solvers and the physical source term integrators utilize `StaticArrays.jl` and `@generated` static dispatch to ensure no heap allocations occur during inner loops.
+- **Unified API**: Every inversion method implements `invert_moments(method, moments)`, and every physical process implements `compute_source_terms(physics, nodes, weights)`.
 - **Numerical Robustness**: Adaptive rank reduction and moment repair algorithms.
 - **Dual-Backend Support**: `NativeBackend()` (optimized $O(n^2)$ solvers with zero-allocation) and `ExternalBackend()` (Standard Library).
 
@@ -67,6 +73,28 @@ m = @SVector [1.0, 5.0, 26.0, 140.0]
 method = Wheeler(2) # Or Wheeler{2}() for static dispatch
 res = invert_moments(method, m)
 # res.weights -> [0.5, 0.5], res.nodes -> [4.0, 6.0]
+```
+
+### Physical Superposition with DQMOM
+Demonstrating the elegance of the physical-mathematical architecture:
+```julia
+using QBMM, StaticArrays
+
+nodes = @SVector [1.0, 2.0, 3.0]
+weights = @SVector [0.5, 0.3, 0.2]
+
+# 1. Define physical kernels
+growth = ParticleGrowth(xi -> 0.1 * xi)            # Size-dependent growth
+agg    = Aggregation((xi, xj) -> 0.05 * (xi + xj)) # Collision kernel
+
+# 2. Superpose physics (compiled into a single zero-allocation pass)
+physics = growth + agg
+
+# 3. Compute 2N source terms for DQMOM
+S_k = compute_source_terms(physics, nodes, weights, Val(6))
+
+# 4. Solve the DQMOM linear system for weight/node evolution rates
+da, db = dqmom_solve(DQMOM(3), nodes, S_k)
 ```
 
 ---

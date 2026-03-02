@@ -10,8 +10,9 @@ Welcome to the `QBMM.jl` developer community! This document provides a deep dive
 
 ```text
 src/
-├── Core/           # Foundational types (AbstractQBMM, QuadratureResult), Traits, and Kernel definitions.
+├── Core/           # Foundational types, Traits, Kernel definitions, and SourceTerms API.
 ├── Math/           # Low-level numerical utilities (Dual-Backend: Hankel, Vandermonde, Stirling).
+├── SourceTerms/    # Physical closure models (Growth, Aggregation, Breakage, etc.).
 ├── Solvers/        
 │   ├── 1D/         # Atomic univariate inversion (Wheeler, PD, EQMOM).
 │   ├── MultiD/     # Recursive multivariate solvers (CQMOM, ECQMOM, Tensor, Brute).
@@ -74,6 +75,22 @@ The multivariate solvers use a **Recursive Deconvolution** strategy to avoid the
 4. **Recursion**: Step 1 is repeated for the conditional moments until $D=1$.
 
 **Developer Note**: When modifying `src/Solvers/MultiD/cqmom.jl`, ensure the `backend` is passed down through all recursive calls to maintain performance consistency.
+
+### 3.3 Adding New Physical Source Terms
+`QBMM.jl` uses a composition-based physics engine. To add a new microscale physical process (e.g., a specific collision kernel or reaction):
+
+1. **Define the type** in `src/SourceTerms/` inheriting from `AbstractSourceTerm`.
+2. **Implement `compute_source_terms`**:
+   ```julia
+   function compute_source_terms(source::MyNewPhysics, nodes::SVector{N, T}, weights::SVector{N, T}, ::Val{L}) where {N, T, L}
+       # MUST return an SVector{L, T} using `ntuple` to ensure zero-allocation.
+       return SVector{L, T}(ntuple(Val(L)) do idx
+           k = idx - 1
+           # ... physical integration logic ...
+       end)
+   end
+   ```
+3. **Composite Pattern**: The base architecture in `Core/source_terms_api.jl` overloads the `+` operator to create `CompositeSourceTerm`s. This uses `@generated` functions to unroll the summation at compile-time, allowing users to stack multiple physics models (`physics = growth + aggregation + breakage`) with absolutely zero runtime overhead. Always ensure your new source term returns an `SVector` to maintain this property.
 
 ---
 
