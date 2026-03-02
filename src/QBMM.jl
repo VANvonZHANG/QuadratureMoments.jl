@@ -36,7 +36,9 @@ export reconstruct_moment
 include("SourceTerms/growth.jl")
 include("SourceTerms/aggregation.jl")
 include("SourceTerms/breakage.jl")
-export ParticleGrowth, Aggregation, Breakage
+include("SourceTerms/nucleation.jl")
+include("SourceTerms/deposition.jl")
+export ParticleGrowth, Aggregation, Breakage, Nucleation, Deposition
 
 # --- 4. 1D Solvers ---
 include("Solvers/1D/wheeler.jl")

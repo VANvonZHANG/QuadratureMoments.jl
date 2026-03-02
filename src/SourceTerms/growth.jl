@@ -6,13 +6,20 @@ using ..QBMM: AbstractSourceTerm
 raw"""
     ParticleGrowth{F} <: AbstractSourceTerm
 
-A source term representing continuous particle growth.
+A source term representing continuous particle growth (phase-space advection).
+
+!!! note "Important Assumption: Zero Disappearance"
+    The current implementation assumes that particles strictly grow (\$G(\xi) > 0\$) 
+    or that the rate of shrinkage does not cause particles to completely disappear 
+    (reach size 0). Thus, the zeroth moment source term is strictly zero (\$S_0 = 0\$). 
+    If you need to model complete particle evaporation/dissolution (finite-time truncation), 
+    this requires more complex flux-based numerical schemes rather than simple moment source terms.
 
 # Type Parameters
 - `F`: The type of the rate function.
 
 # Fields
-- `rate_func::F`: A function `G(xi)` that returns the growth rate of a particle of size `xi`.
+- `rate_func::F`: A function `G(xi)` that returns the continuous growth rate (\$d\xi/dt\$) of a particle of size `xi`.
 raw"""
 struct ParticleGrowth{F} <: AbstractSourceTerm
     rate_func::F

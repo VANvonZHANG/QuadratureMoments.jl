@@ -66,6 +66,34 @@ using StaticArrays
         @test S_k[2] ≈ 0.0 atol=1e-10
     end
 
+    @testset "Nucleation" begin
+        J_nuc = 1.5
+        xi_nuc = 0.1
+        nuc = Nucleation(J_nuc, xi_nuc)
+        
+        S_k = compute_source_terms(nuc, nodes, weights, Val(4))
+        
+        # S_k = J_nuc * xi_nuc^k
+        @test S_k[1] ≈ J_nuc atol=1e-10
+        @test S_k[2] ≈ J_nuc * xi_nuc atol=1e-10
+        @test S_k[3] ≈ J_nuc * (xi_nuc^2) atol=1e-10
+    end
+
+    @testset "Deposition" begin
+        K_dep = 0.5
+        # Constant deposition rate
+        dep = Deposition(xi -> K_dep)
+        
+        S_k = compute_source_terms(dep, nodes, weights, Val(4))
+        
+        # S_0 = - sum(w_i * K_dep) = - K_dep * m0
+        @test S_k[1] ≈ -K_dep * m0 atol=1e-10
+        
+        # S_1 = - sum(w_i * K_dep * xi_i) = - K_dep * m1
+        m1 = sum(weights .* nodes)
+        @test S_k[2] ≈ -K_dep * m1 atol=1e-10
+    end
+
     @testset "Composite SourceTerms (Superposition)" begin
         beta_0 = 1.2
         G_0 = 0.5
