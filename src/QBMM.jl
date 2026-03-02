@@ -18,9 +18,11 @@ using Combinatorics
 # --- 1. Core Infrastructure ---
 include("Core/types.jl")
 include("Core/kernels.jl")
+include("Core/source_terms_api.jl")
 export AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
 export QuadratureResult
 export AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
+export AbstractSourceTerm, CompositeSourceTerm, compute_source_terms
 
 # --- 2. Math Utilities (Dual Backend) ---
 include("Math/hankel.jl")
@@ -30,29 +32,34 @@ include("Math/moments_utils.jl")
 export hankel_matrix, stirling2, solve_vandermonde, solve_vandermonde_transpose
 export reconstruct_moment
 
-# --- 3. 1D Solvers ---
+# --- 3. Physical Source Terms ---
+include("SourceTerms/growth.jl")
+include("SourceTerms/aggregation.jl")
+export ParticleGrowth, Aggregation
+
+# --- 4. 1D Solvers ---
 include("Solvers/1D/wheeler.jl")
 include("Solvers/1D/pd.jl")
 include("Solvers/1D/eqmom.jl")
 export Wheeler, PD, EQMOM
 
-# --- 4. Multi-D Solvers ---
+# --- 5. Multi-D Solvers ---
 include("Solvers/MultiD/cqmom.jl")
 include("Solvers/MultiD/ecqmom.jl")
 include("Solvers/MultiD/tensor.jl")
 include("Solvers/MultiD/brute.jl")
 export CQMOM, ECQMOM, TensorQMOM, BruteQMOM
 
-# --- 5. Evolution Solvers ---
+# --- 6. Evolution Solvers ---
 include("Solvers/Evolution/dqmom.jl")
 export DQMOM, dqmom_source_terms, dqmom_system_matrix, dqmom_matrix, dqmom_solve
 
-# --- 6. Robustness Tools ---
+# --- 7. Robustness Tools ---
 include("Tools/realizability.jl")
 include("Tools/correction.jl")
 export is_realizable, mcgraw_correction
 
-# --- 7. Main API ---
+# --- 8. Main API ---
 
 raw"""
     invert_moments(method::AbstractQBMM, moments; backend=NativeBackend()) -> QuadratureResult
