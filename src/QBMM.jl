@@ -34,11 +34,12 @@ export reconstruct_moment
 
 # --- 3. Physical Source Terms ---
 include("SourceTerms/growth.jl")
+include("SourceTerms/shrinkage.jl")
 include("SourceTerms/aggregation.jl")
 include("SourceTerms/breakage.jl")
 include("SourceTerms/nucleation.jl")
 include("SourceTerms/deposition.jl")
-export ParticleGrowth, Aggregation, Breakage, Nucleation, Deposition
+export ParticleGrowth, ParticleShrinkage, Aggregation, Breakage, Nucleation, Deposition
 
 # --- 4. 1D Solvers ---
 include("Solvers/1D/wheeler.jl")

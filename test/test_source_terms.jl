@@ -94,6 +94,21 @@ using StaticArrays
         @test S_k[2] ≈ -K_dep * m1 atol=1e-10
     end
 
+    @testset "Particle Shrinkage (Evaporation)" begin
+        G_0 = -0.5
+        flux_0 = -0.1
+        # Shrinkage requires an explicit model for the boundary flux at size zero
+        shrink = ParticleShrinkage(xi -> G_0, (n, w) -> flux_0)
+        
+        S_k = compute_source_terms(shrink, nodes, weights, Val(4))
+        
+        # S_0 = user_defined_flux (flux_0)
+        @test S_k[1] ≈ flux_0 atol=1e-10
+        
+        # S_1 = sum(w_i * 1 * xi_i^0 * G_0) = G_0 * m0
+        @test S_k[2] ≈ G_0 * m0 atol=1e-10
+    end
+
     @testset "Composite SourceTerms (Superposition)" begin
         beta_0 = 1.2
         G_0 = 0.5
