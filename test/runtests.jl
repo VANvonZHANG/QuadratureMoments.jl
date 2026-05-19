@@ -15,4 +15,5 @@ using QBMM
     include("test_dqmom.jl")
     include("test_dqmom_forwarddiff.jl")
     include("test_correction.jl")
+    include("test_source_terms.jl")
 end

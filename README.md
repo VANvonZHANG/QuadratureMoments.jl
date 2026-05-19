@@ -1,7 +1,7 @@
 # QBMM.jl
 
-[![Build Status](https://github.com/yourusername/QBMM.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/yourusername/QBMM.jl/actions)
-[![Coverage](https://codecov.io/gh/yourusername/QBMM.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/yourusername/QBMM.jl)
+[![Build Status](https://github.com/VANvonZHANG/QBMM.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/VANvonZHANG/QBMM.jl/actions)
+[![Coverage](https://codecov.io/gh/VANvonZHANG/QBMM.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/VANvonZHANG/QBMM.jl)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **High-Performance Quadrature-Based Moment Methods for Mesoscale Modeling in Julia.**
@@ -16,7 +16,7 @@
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/yourusername/QBMM.jl.git")
+Pkg.add(url="https://github.com/VANvonZHANG/QBMM.jl.git")
 ```
 
 ---
