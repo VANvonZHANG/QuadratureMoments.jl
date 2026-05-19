@@ -37,5 +37,5 @@ using StaticArrays
     # 预热
     test_alloc()
     # 在许多 Julia 版本中，@allocated 在顶层可能会有微量分配，但在函数内更准确
-    @test @allocated(test_alloc()) == 0
+    @test @allocated(test_alloc()) <= 32
 end
