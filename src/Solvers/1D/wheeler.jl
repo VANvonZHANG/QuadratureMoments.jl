@@ -14,7 +14,7 @@ corresponding tridiagonal Jacobi matrix.
 # Type Parameters
 - `N::Int`: Number of quadrature nodes to reconstruct.
 raw"""
-struct Wheeler{N} <: AbstractQBMM{1, N} end
+struct Wheeler{N} <: AbstractQBMM{1,N} end
 
 raw"""
     Wheeler(N::Int)
@@ -41,24 +41,20 @@ to maintain stability, returning \$k \\le N\$ valid nodes.
 - A `QuadratureResult` containing weights and nodes.
 raw"""
 function invert_moments(
-    method::Wheeler{N},
-    m::SVector{L, T};
-    backend::AbstractMathBackend=NativeBackend(),
-) where {N, L, T}
+    method::Wheeler{N}, m::SVector{L,T}; backend::AbstractMathBackend=NativeBackend()
+) where {N,L,T}
     # Call adaptive static core
     nodes, weights = _adaptive_wheeler_static(m, Val(N), backend)
 
-    return QuadratureResult(weights, SMatrix{N, 1, T}(nodes), nothing)
+    return QuadratureResult(weights, SMatrix{N,1,T}(nodes), nothing)
 end
 
 function invert_moments(
-    method::Wheeler{N},
-    m::AbstractVector{T};
-    backend::AbstractMathBackend=NativeBackend(),
-) where {N, T}
+    method::Wheeler{N}, m::AbstractVector{T}; backend::AbstractMathBackend=NativeBackend()
+) where {N,T}
     nodes, weights = _wheeler_dynamic(m, N, backend)
 
-    return QuadratureResult(SVector{N, T}(weights), SMatrix{N, 1, T}(nodes), nothing)
+    return QuadratureResult(SVector{N,T}(weights), SMatrix{N,1,T}(nodes), nothing)
 end
 
 # --- Internal Implementations ---
@@ -69,10 +65,7 @@ raw"""
 Internal dynamic implementation for the Wheeler algorithm.
 raw"""
 function _wheeler_dynamic(
-    m::AbstractVector{T},
-    N_max::Int,
-    backend::AbstractMathBackend;
-    tol=1e-14,
+    m::AbstractVector{T}, N_max::Int, backend::AbstractMathBackend; tol=1e-14
 ) where {T}
     @assert length(m) >= 2N_max "Moments count must be at least 2N."
 
@@ -136,21 +129,18 @@ raw"""
 Internal zero-allocation static implementation for the Wheeler algorithm.
 raw"""
 function _adaptive_wheeler_static(
-    m::SVector{L, T},
-    ::Val{N_max},
-    backend::AbstractMathBackend;
-    tol=1e-14,
-) where {L, T, N_max}
-    a = MVector{N_max, T}(undef)
-    b = MVector{N_max, T}(undef)
-    sig = zero(MMatrix{N_max + 2, L + 1, T})
+    m::SVector{L,T}, ::Val{N_max}, backend::AbstractMathBackend; tol=1e-14
+) where {L,T,N_max}
+    a = MVector{N_max,T}(undef)
+    b = MVector{N_max,T}(undef)
+    sig = zero(MMatrix{N_max + 2,L + 1,T})
 
     for i in 1:L
         sig[2, i] = m[i]
     end
 
     if abs(m[1]) < tol
-        return zero(SVector{N_max, T}), zero(SVector{N_max, T})
+        return zero(SVector{N_max,T}), zero(SVector{N_max,T})
     end
 
     a[1] = m[2] / m[1]
@@ -184,7 +174,7 @@ function _adaptive_wheeler_static(
         b[k + 1] = new_b
     end
 
-    J_dense = zero(MMatrix{N_max, N_max, T})
+    J_dense = zero(MMatrix{N_max,N_max,T})
     for i in 1:actual_N
         J_dense[i, i] = a[i]
     end
@@ -194,10 +184,10 @@ function _adaptive_wheeler_static(
         J_dense[i + 1, i] = val
     end
 
-    eigen_decomp = eigen(Symmetric(SMatrix{N_max, N_max, T}(J_dense)))
+    eigen_decomp = eigen(Symmetric(SMatrix{N_max,N_max,T}(J_dense)))
 
-    nodes = SVector{N_max, T}(eigen_decomp.values)
-    weights = SVector{N_max, T}(ntuple(i -> m[1] * eigen_decomp.vectors[1, i]^2, Val(N_max)))
+    nodes = SVector{N_max,T}(eigen_decomp.values)
+    weights = SVector{N_max,T}(ntuple(i -> m[1] * eigen_decomp.vectors[1, i]^2, Val(N_max)))
 
     return nodes, weights
 end

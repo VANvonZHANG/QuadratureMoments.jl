@@ -19,11 +19,9 @@ is implemented using the \$O(N^2)\$ Björck-Pereyra algorithm for zero-allocatio
 - A vector `c` of coefficients matching the type of `b`.
 raw"""
 @inline function solve_vandermonde(
-    x::SVector{N, T},
-    b::SVector{N, T},
-    ::NativeBackend,
-) where {N, T}
-    c = MVector{N, T}(b)
+    x::SVector{N,T}, b::SVector{N,T}, ::NativeBackend
+) where {N,T}
+    c = MVector{N,T}(b)
     for i in 1:(N - 1)
         for j in N:-1:(i + 1)
             c[j] = (c[j] - c[j - 1]) / (x[j] - x[j - i])
@@ -34,7 +32,7 @@ raw"""
             c[j] = c[j] - c[j + 1] * x[i]
         end
     end
-    return SVector{N, T}(c)
+    return SVector{N,T}(c)
 end
 
 raw"""
@@ -54,16 +52,14 @@ In `NativeBackend`, this utilizes a stable \$O(N^2)\$ algorithm.
 - A vector `c` of weights/coefficients matching the type of `b`.
 raw"""
 @inline function solve_vandermonde_transpose(
-    x::SVector{N, T},
-    b::SVector{N, T},
-    ::NativeBackend,
-) where {N, T}
+    x::SVector{N,T}, b::SVector{N,T}, ::NativeBackend
+) where {N,T}
     return _solve_v_transpose_direct(x, b, Val(N))
 end
 
-function _solve_v_transpose_direct(x::SVector{N, T}, b::SVector{N, T}, ::Val{N}) where {N, T}
+function _solve_v_transpose_direct(x::SVector{N,T}, b::SVector{N,T}, ::Val{N}) where {N,T}
     # Stable O(N^2) Björck-Pereyra dual solver
-    c = MVector{N, T}(b)
+    c = MVector{N,T}(b)
     for k in 1:(N - 1)
         for i in N:-1:(k + 1)
             c[i] -= x[k] * c[i - 1]
@@ -77,21 +73,21 @@ function _solve_v_transpose_direct(x::SVector{N, T}, b::SVector{N, T}, ::Val{N})
             c[i] -= c[i + 1]
         end
     end
-    return SVector{N, T}(c)
+    return SVector{N,T}(c)
 end
 
 # --- External Backend ---
 
-function solve_vandermonde(x::AbstractVector{T}, b::AbstractVector{T}, ::ExternalBackend) where {T}
+function solve_vandermonde(
+    x::AbstractVector{T}, b::AbstractVector{T}, ::ExternalBackend
+) where {T}
     N = length(x)
     V = [x[i]^(j - 1) for i in 1:N, j in 1:N]
     return V \ b
 end
 
 function solve_vandermonde_transpose(
-    x::AbstractVector{T},
-    b::AbstractVector{T},
-    ::ExternalBackend,
+    x::AbstractVector{T}, b::AbstractVector{T}, ::ExternalBackend
 ) where {T}
     N = length(x)
     V = [x[j]^(i - 1) for i in 1:N, j in 1:N]

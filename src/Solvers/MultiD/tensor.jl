@@ -17,7 +17,7 @@ quadrature via a Cartesian product.
 - `N_tuple::NTuple{D, Int}`: Nodes per dimension.
 - `N_total::Int`: Total nodes in the result (`prod(N)`).
 raw"""
-struct TensorQMOM{D, N_tuple, N_total} <: AbstractQBMM{D, N_total} end
+struct TensorQMOM{D,N_tuple,N_total} <: AbstractQBMM{D,N_total} end
 
 raw"""
     TensorQMOM(N::NTuple{D, Int})
@@ -25,7 +25,7 @@ raw"""
 
 Constructors for the TensorQMOM solver.
 raw"""
-TensorQMOM(N::NTuple{D, Int}) where {D} = TensorQMOM{D, N, prod(N)}()
+TensorQMOM(N::NTuple{D,Int}) where {D} = TensorQMOM{D,N,prod(N)}()
 TensorQMOM(D::Int, N_per_dim::Int) = TensorQMOM(ntuple(i -> N_per_dim, D))
 
 raw"""
@@ -42,25 +42,25 @@ Perform Tensor-product moment inversion.
 - A `QuadratureResult` containing the combined weights and nodes.
 raw"""
 function invert_moments(
-    method::TensorQMOM{D, N_tuple, N_total},
-    m::SArray{S, T, D};
+    method::TensorQMOM{D,N_tuple,N_total},
+    m::SArray{S,T,D};
     backend::AbstractMathBackend=NativeBackend(),
-) where {D, N_tuple, N_total, S, T}
+) where {D,N_tuple,N_total,S,T}
     # Extract marginal moments for each dimension
     marginal_m = ntuple(Val(D)) do d
         Ld = 2 * N_tuple[d]
         ntuple(k -> m[ntuple(i -> (i == d ? k : 1), Val(D))...], Val(Ld))
     end
 
-    marginal_m_vecs = ntuple(d -> SVector{length(marginal_m[d]), T}(marginal_m[d]), Val(D))
+    marginal_m_vecs = ntuple(d -> SVector{length(marginal_m[d]),T}(marginal_m[d]), Val(D))
     return invert_moments(method, marginal_m_vecs; backend=backend)
 end
 
 function invert_moments(
-    ::TensorQMOM{D, N_tuple, N_total},
-    marginal_m::NTuple{D, SVector{L, T}};
+    ::TensorQMOM{D,N_tuple,N_total},
+    marginal_m::NTuple{D,SVector{L,T}};
     backend::AbstractMathBackend=NativeBackend(),
-) where {D, N_tuple, N_total, L, T}
+) where {D,N_tuple,N_total,L,T}
 
     # 1. Independent 1D inversions
     res_1d = ntuple(Val(D)) do d
@@ -69,8 +69,8 @@ function invert_moments(
     end
 
     # 2. Cartesian product combination
-    final_nodes = MMatrix{N_total, D, T}(undef)
-    final_weights = MVector{N_total, T}(undef)
+    final_nodes = MMatrix{N_total,D,T}(undef)
+    final_weights = MVector{N_total,T}(undef)
 
     indices = CartesianIndices(N_tuple)
     for (idx, cid) in enumerate(indices)
@@ -84,8 +84,6 @@ function invert_moments(
     end
 
     return QuadratureResult(
-        SVector{N_total, T}(final_weights),
-        SMatrix{N_total, D, T}(final_nodes),
-        nothing,
+        SVector{N_total,T}(final_weights), SMatrix{N_total,D,T}(final_nodes), nothing
     )
 end

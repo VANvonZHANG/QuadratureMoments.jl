@@ -20,11 +20,8 @@ This method must be implemented by all concrete subtypes of `AbstractSourceTerm`
 It must return an `SVector{L, T}` to maintain zero-allocation guarantees.
 raw"""
 function compute_source_terms(
-    source::AbstractSourceTerm,
-    nodes::SVector{N, T},
-    weights::SVector{N, T},
-    ::Val{L},
-) where {N, T, L}
+    source::AbstractSourceTerm, nodes::SVector{N,T}, weights::SVector{N,T}, ::Val{L}
+) where {N,T,L}
     error("`compute_source_terms` is not implemented for source type: $(typeof(source))")
 end
 
@@ -42,9 +39,15 @@ end
 
 # Overload the `+` operator to allow easy stacking of physical processes
 Base.:+(s1::AbstractSourceTerm, s2::AbstractSourceTerm) = CompositeSourceTerm((s1, s2))
-Base.:+(c::CompositeSourceTerm, s::AbstractSourceTerm) = CompositeSourceTerm((c.sources..., s))
-Base.:+(s::AbstractSourceTerm, c::CompositeSourceTerm) = CompositeSourceTerm((s, c.sources...))
-Base.:+(c1::CompositeSourceTerm, c2::CompositeSourceTerm) = CompositeSourceTerm((c1.sources..., c2.sources...))
+function Base.:+(c::CompositeSourceTerm, s::AbstractSourceTerm)
+    CompositeSourceTerm((c.sources..., s))
+end
+function Base.:+(s::AbstractSourceTerm, c::CompositeSourceTerm)
+    CompositeSourceTerm((s, c.sources...))
+end
+function Base.:+(c1::CompositeSourceTerm, c2::CompositeSourceTerm)
+    CompositeSourceTerm((c1.sources..., c2.sources...))
+end
 
 raw"""
     compute_source_terms(comp::CompositeSourceTerm, nodes, weights, val_L)
@@ -53,20 +56,20 @@ Unrolls and sums the computation of all source terms in the composite at compile
 raw"""
 @generated function compute_source_terms(
     comp::CompositeSourceTerm{Sources},
-    nodes::SVector{N, T},
-    weights::SVector{N, T},
+    nodes::SVector{N,T},
+    weights::SVector{N,T},
     val_L::Val{L},
-) where {Sources, N, T, L}
+) where {Sources,N,T,L}
     num_sources = length(Sources.parameters)
-    
+
     if num_sources == 0
-        return :(zero(SVector{L, T}))
+        return :(zero(SVector{L,T}))
     end
 
     expr = :(compute_source_terms(comp.sources[1], nodes, weights, val_L))
     for i in 2:num_sources
         expr = :($expr + compute_source_terms(comp.sources[$i], nodes, weights, val_L))
     end
-    
+
     return expr
 end

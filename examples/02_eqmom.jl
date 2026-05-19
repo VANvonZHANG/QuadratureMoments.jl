@@ -19,10 +19,18 @@ res_eq = invert_moments(method_eq, m_extended)
 
 println("--- EQMOM (Gaussian Kernel, N=2) 结果 ---")
 for i in 1:2
-    @printf("节点 (均值) %d: %8.4f, 权重: %8.4f
-", i, res_eq.nodes[i], res_eq.weights[i])
+    @printf(
+        "节点 (均值) %d: %8.4f, 权重: %8.4f
+",
+        i,
+        res_eq.nodes[i],
+        res_eq.weights[i]
+    )
 end
-@printf("全局带宽参数 σ: %8.4f
-", res_eq.sigmas[1])
+@printf(
+    "全局带宽参数 σ: %8.4f
+",
+    res_eq.sigmas[1]
+)
 println()
 println("对比标准 QMOM（所有概率质量集中在离散节点上），EQMOM 提供了一个具有非零 σ 的平滑分布的近似。")

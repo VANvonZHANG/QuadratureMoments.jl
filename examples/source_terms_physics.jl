@@ -17,8 +17,12 @@ m0 = sum(weights) # Current total number density = 1.0
 println("Current State:")
 println("  Nodes:   ", nodes)
 println("  Weights: ", weights)
-println("  Total Number Density (m0): ", m0, "
-")
+println(
+    "  Total Number Density (m0): ",
+    m0,
+    "
+",
+)
 
 # ==========================================
 # Case 1: Constant Aggregation Kernel
@@ -60,10 +64,7 @@ println("  => Match verified!
 # ==========================================
 println("--- Case 3: Symmetric Binary Breakage ---")
 b_0 = 1.5
-sym_break = Breakage(
-    xi -> b_0,
-    (k, xi) -> (2.0^(1.0 - k)) * (xi^k)
-)
+sym_break = Breakage(xi -> b_0, (k, xi) -> (2.0^(1.0 - k)) * (xi^k))
 
 S_k_break = compute_source_terms(sym_break, nodes, weights, Val(4))
 
@@ -89,8 +90,12 @@ da, db = dqmom_solve(DQMOM(3), nodes, S_total)
 
 println("Total combined S_k (first 6 moments):")
 for k in 0:5
-    @printf("  S_%d = %10.5f
-", k, S_total[k+1])
+    @printf(
+        "  S_%d = %10.5f
+",
+        k,
+        S_total[k + 1]
+    )
 end
 println("
 DQMOM Evolution Rates:")

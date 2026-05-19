@@ -35,21 +35,20 @@ The source term for the \$k\$-th moment is:
 Note that for \$k=0\$ (total number), the source term is zero.
 raw"""
 function compute_source_terms(
-    growth::ParticleGrowth,
-    nodes::SVector{N, T},
-    weights::SVector{N, T},
-    ::Val{L},
-) where {N, T, L}
-    return SVector{L, T}(ntuple(Val(L)) do idx
-        k = idx - 1
-        if k == 0
-            return zero(T)
-        else
-            val = zero(T)
-            for i in 1:N
-                val += weights[i] * k * (nodes[i]^(k - 1)) * growth.rate_func(nodes[i])
+    growth::ParticleGrowth, nodes::SVector{N,T}, weights::SVector{N,T}, ::Val{L}
+) where {N,T,L}
+    return SVector{L,T}(
+        ntuple(Val(L)) do idx
+            k = idx - 1
+            if k == 0
+                return zero(T)
+            else
+                val = zero(T)
+                for i in 1:N
+                    val += weights[i] * k * (nodes[i]^(k - 1)) * growth.rate_func(nodes[i])
+                end
+                return val
             end
-            return val
-        end
-    end)
+        end,
+    )
 end

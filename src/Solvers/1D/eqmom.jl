@@ -3,7 +3,8 @@
 using Roots
 using LinearAlgebra
 using StaticArrays
-using ..QBMM: AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend, QuadratureResult
+using ..QBMM:
+    AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend, QuadratureResult
 using ..QBMM: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
 using ..QBMM: stirling2, reconstruct_moment, Wheeler
 
@@ -20,7 +21,7 @@ Density Function (NDF) using a set of non-negative continuous kernel functions
 - `N::Int`: Number of primary quadrature nodes.
 - `K<:AbstractKernel`: The continuous kernel type.
 raw"""
-struct EQMOM{N, K<:AbstractKernel} <: AbstractQBMM{1, N}
+struct EQMOM{N,K<:AbstractKernel} <: AbstractQBMM{1,N}
     kernel::K
 end
 
@@ -30,8 +31,8 @@ raw"""
 
 Constructors for the EQMOM solver. Defaults to `GaussianKernel()`.
 raw"""
-EQMOM(N::Int) = EQMOM{N, GaussianKernel}(GaussianKernel())
-EQMOM(N::Int, kernel::K) where {K<:AbstractKernel} = EQMOM{N, K}(kernel)
+EQMOM(N::Int) = EQMOM{N,GaussianKernel}(GaussianKernel())
+EQMOM(N::Int, kernel::K) where {K<:AbstractKernel} = EQMOM{N,K}(kernel)
 
 # --- Modified Moments API ---
 
@@ -51,12 +52,9 @@ space of the specified kernel.
 - A vector of modified moments.
 raw"""
 function compute_modified_moments(
-    m::SVector{L, T},
-    σ::T,
-    ::GaussianKernel,
-    ::AbstractMathBackend,
-) where {L, T}
-    m_star = MVector{L, T}(m)
+    m::SVector{L,T}, σ::T, ::GaussianKernel, ::AbstractMathBackend
+) where {L,T}
+    m_star = MVector{L,T}(m)
     for k in 3:L # Index 1=m0, 2=m1, 3=m2
         k_val = k - 1
         term_sum = zero(T)
@@ -72,16 +70,13 @@ function compute_modified_moments(
         end
         m_star[k] -= term_sum
     end
-    return SVector{L, T}(m_star)
+    return SVector{L,T}(m_star)
 end
 
 function compute_modified_moments(
-    m::SVector{L, T},
-    σ::T,
-    ::GammaKernel,
-    backend::AbstractMathBackend,
-) where {L, T}
-    m_star = MVector{L, T}(undef)
+    m::SVector{L,T}, σ::T, ::GammaKernel, backend::AbstractMathBackend
+) where {L,T}
+    m_star = MVector{L,T}(undef)
     for k in 1:L
         k_val = k - 1
         val = zero(T)
@@ -93,16 +88,13 @@ function compute_modified_moments(
         end
         m_star[k] = val
     end
-    return SVector{L, T}(m_star)
+    return SVector{L,T}(m_star)
 end
 
 function compute_modified_moments(
-    m::SVector{L, T},
-    σ::T,
-    ::BetaKernel,
-    backend::AbstractMathBackend,
-) where {L, T}
-    m_prime = MVector{L, T}(m)
+    m::SVector{L,T}, σ::T, ::BetaKernel, backend::AbstractMathBackend
+) where {L,T}
+    m_prime = MVector{L,T}(m)
     for k in 2:L
         k_val = k - 1
         prod_val = one(T)
@@ -111,7 +103,7 @@ function compute_modified_moments(
         end
         m_prime[k] *= prod_val
     end
-    return compute_modified_moments(SVector{L, T}(m_prime), σ, GammaKernel(), backend)
+    return compute_modified_moments(SVector{L,T}(m_prime), σ, GammaKernel(), backend)
 end
 
 # --- Main API ---
@@ -133,11 +125,8 @@ the reconstruction of the \$(2N+1)\$-th moment matches the target exactly.
 - A `QuadratureResult` containing weights, primary nodes, and \$\\sigma\$ parameters.
 raw"""
 function invert_moments(
-    method::EQMOM{N, K},
-    m::SVector{L, T};
-    backend::AbstractMathBackend=NativeBackend(),
-) where {N, K, T, L}
-
+    method::EQMOM{N,K}, m::SVector{L,T}; backend::AbstractMathBackend=NativeBackend()
+) where {N,K,T,L}
     @assert L >= 2N + 1 "EQMOM requires at least 2N+1 moments"
 
     # 1. Bounds estimation for σ
@@ -151,7 +140,7 @@ function invert_moments(
             return 1e10
         end
 
-        m_slice = SVector{2N, T}(m[1:(2N)])
+        m_slice = SVector{2N,T}(m[1:(2N)])
         m_star = compute_modified_moments(m_slice, σ, method.kernel, backend)
 
         # Internal Wheeler Inversion
@@ -179,10 +168,10 @@ function invert_moments(
     end
 
     # 4. Final Construct
-    m_slice_final = SVector{2N, T}(m[1:(2N)])
+    m_slice_final = SVector{2N,T}(m[1:(2N)])
     m_star_final = compute_modified_moments(m_slice_final, σ_opt, method.kernel, backend)
     res_final = invert_moments(Wheeler{N}(), m_star_final; backend=backend)
 
-    sigmas = SMatrix{N, 1, T}(fill(σ_opt, N))
+    sigmas = SMatrix{N,1,T}(fill(σ_opt, N))
     return QuadratureResult(res_final.weights, res_final.nodes, sigmas)
 end

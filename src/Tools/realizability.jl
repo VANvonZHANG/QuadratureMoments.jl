@@ -22,9 +22,7 @@ function \$n(\\xi) \\ge 0\$ that produces these moments.
 - `true` if the sequence is realizable within the specified domain, `false` otherwise.
 raw"""
 function is_realizable(
-    m::AbstractVector{T};
-    domain=:pos,
-    backend::AbstractMathBackend=NativeBackend(),
+    m::AbstractVector{T}; domain=:pos, backend::AbstractMathBackend=NativeBackend()
 ) where {T}
     L = length(m)
     if L < 2
@@ -54,10 +52,8 @@ raw"""
     is_realizable(m::StaticVector; domain=:pos, backend=NativeBackend())
 raw"""
 @inline function is_realizable(
-    m::StaticVector{L, T};
-    domain=:pos,
-    backend::AbstractMathBackend=NativeBackend(),
-) where {L, T}
+    m::StaticVector{L,T}; domain=:pos, backend::AbstractMathBackend=NativeBackend()
+) where {L,T}
     if L < 2
         return true
     end

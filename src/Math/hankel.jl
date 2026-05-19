@@ -27,9 +27,11 @@ function hankel_matrix(m::AbstractVector{T}, n::Int, ::ExternalBackend; offset=0
     return H
 end
 
-@inline function hankel_matrix(m::AbstractVector{T}, n::Int, ::NativeBackend; offset=0) where {T}
+@inline function hankel_matrix(
+    m::AbstractVector{T}, n::Int, ::NativeBackend; offset=0
+) where {T}
     # Dynamic vector Native implementation
-    return SMatrix{n + 1, n + 1, T}(
+    return SMatrix{n + 1,n + 1,T}(
         ntuple(
             k -> begin
                 idx = (k - 1) % (n + 1) + (k - 1) ÷ (n + 1) + 1 + offset
@@ -41,20 +43,14 @@ end
 end
 
 @inline function hankel_matrix(
-    m::SVector{L, T},
-    n::Int,
-    ::NativeBackend;
-    offset=0,
-) where {L, T}
+    m::SVector{L,T}, n::Int, ::NativeBackend; offset=0
+) where {L,T}
     # Static vector Native implementation (maximum performance)
-    return SMatrix{n + 1, n + 1, T}(
-        ntuple(
-            k -> begin
-                i = (k - 1) % (n + 1)
-                j = (k - 1) ÷ (n + 1)
-                m[i + j + 1 + offset]
-            end,
-            Val((n + 1) * (n + 1)),
-        ),
+    return SMatrix{n + 1,n + 1,T}(
+        ntuple(k -> begin
+            i = (k - 1) % (n + 1)
+            j = (k - 1) ÷ (n + 1)
+            m[i + j + 1 + offset]
+        end, Val((n + 1) * (n + 1)))
     )
 end

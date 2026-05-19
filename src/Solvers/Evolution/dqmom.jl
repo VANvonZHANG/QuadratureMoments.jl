@@ -16,7 +16,7 @@ and weighted nodes.
 # Type Parameters
 - `N::Int`: Number of quadrature nodes.
 raw"""
-struct DQMOM{N} <: AbstractQBMM{1, N} end
+struct DQMOM{N} <: AbstractQBMM{1,N} end
 
 raw"""
     DQMOM(N::Int)
@@ -40,19 +40,22 @@ The system is defined as \$A \mathbf{x} = \mathbf{S}\$, where
 # Returns
 - The coefficient matrix \$A\$.
 raw"""
-@inline dqmom_matrix(
-    nodes::AbstractVector,
-    backend::AbstractMathBackend=NativeBackend(),
-) = _dqmom_matrix_dispatch(nodes, backend)
+@inline dqmom_matrix(nodes::AbstractVector, backend::AbstractMathBackend=NativeBackend()) = _dqmom_matrix_dispatch(
+    nodes, backend
+)
 
-_dqmom_matrix_dispatch(nodes::SVector{N, T}, backend::NativeBackend) where {N, T} =
+function _dqmom_matrix_dispatch(nodes::SVector{N,T}, backend::NativeBackend) where {N,T}
     _dqmom_matrix_native(nodes, Val(N))
-_dqmom_matrix_dispatch(nodes::AbstractVector{T}, backend::ExternalBackend) where {T} =
+end
+function _dqmom_matrix_dispatch(
+    nodes::AbstractVector{T}, backend::ExternalBackend
+) where {T}
     _dqmom_matrix_external(nodes)
+end
 
-function _dqmom_matrix_native(nodes::SVector{N, T}, ::Val{N}) where {N, T}
+function _dqmom_matrix_native(nodes::SVector{N,T}, ::Val{N}) where {N,T}
     # Matrix size is 2N x 2N
-    A = MMatrix{2 * N, 2 * N, T}(undef)
+    A = MMatrix{2 * N,2 * N,T}(undef)
 
     for k in 0:(2 * N - 1)
         row = k + 1
@@ -78,7 +81,7 @@ function _dqmom_matrix_native(nodes::SVector{N, T}, ::Val{N}) where {N, T}
         end
     end
 
-    return SMatrix{2 * N, 2 * N, T}(A)
+    return SMatrix{2 * N,2 * N,T}(A)
 end
 
 function _dqmom_matrix_external(nodes::AbstractVector{T}) where {T}
@@ -124,18 +127,18 @@ Solve the DQMOM system to obtain evolution rates.
 raw"""
 function dqmom_solve(
     ::DQMOM{N},
-    nodes::SVector{N, T},
-    source_terms::SVector{L, T};
+    nodes::SVector{N,T},
+    source_terms::SVector{L,T};
     backend::AbstractMathBackend=NativeBackend(),
-) where {N, L, T}
+) where {N,L,T}
     @assert L == 2 * N "Number of source terms (S_k) must be 2N."
 
     A = dqmom_matrix(nodes, backend)
     # Solve A * x = S
     x = A \ source_terms
 
-    da = SVector{N, T}(ntuple(i -> x[i], Val(N)))
-    db = SVector{N, T}(ntuple(i -> x[i + N], Val(N)))
+    da = SVector{N,T}(ntuple(i -> x[i], Val(N)))
+    db = SVector{N,T}(ntuple(i -> x[i + N], Val(N)))
     return da, db
 end
 
@@ -144,11 +147,11 @@ function dqmom_solve(
     nodes::AbstractVector{T},
     source_terms::AbstractVector{T};
     backend::AbstractMathBackend=NativeBackend(),
-) where {N, T}
+) where {N,T}
     @assert length(source_terms) == 2 * N "Number of source terms must be 2N."
 
     A = dqmom_matrix(nodes, backend)
     x = A \ source_terms
 
-    return x[1:N], x[N + 1:(2 * N)]
+    return x[1:N], x[(N + 1):(2 * N)]
 end

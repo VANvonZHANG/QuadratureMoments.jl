@@ -16,14 +16,14 @@ automatic differentiation (`ForwardDiff.jl`).
 - `D::Int`: Dimensions of the coordinate space.
 - `N::Int`: Number of multi-dimensional quadrature nodes.
 raw"""
-struct BruteQMOM{D, N} <: AbstractQBMM{D, N} end
+struct BruteQMOM{D,N} <: AbstractQBMM{D,N} end
 
 raw"""
     BruteQMOM(D::Int, N::Int)
 
 Constructor for the BruteQMOM solver.
 raw"""
-BruteQMOM(D::Int, N::Int) = BruteQMOM{D, N}()
+BruteQMOM(D::Int, N::Int) = BruteQMOM{D,N}()
 
 raw"""
     invert_moments(method::BruteQMOM, m::SArray; kwargs...) -> QuadratureResult
@@ -41,17 +41,16 @@ Perform brute-force Newton-Raphson moment inversion.
 - A `QuadratureResult` containing weights and nodes.
 raw"""
 function invert_moments(
-    ::BruteQMOM{D, N},
-    m::SArray{S, T, D};
+    ::BruteQMOM{D,N},
+    m::SArray{S,T,D};
     max_iter=20,
     tol=1e-10,
     backend::AbstractMathBackend=NativeBackend(),
-) where {D, N, S, T}
-
+) where {D,N,S,T}
     P = N * (D + 1)
 
     # 1. Initial Guess Generation
-    x0_data = MVector{P, T}(undef)
+    x0_data = MVector{P,T}(undef)
     # Uniform weight distribution
     w0 = m[ntuple(i -> 1, Val(D))...] / N
     for i in 1:N
@@ -67,14 +66,14 @@ function invert_moments(
                 ) * (0.8 + 0.4 * i / N)
         end
     end
-    x = SVector{P, T}(x0_data)
+    x = SVector{P,T}(x0_data)
 
     # 2. Residual Function Formulation
     S_tuple = ntuple(i -> S.parameters[i], Val(D))
     mom_indices = CartesianIndices(S_tuple)[1:P]
 
     function residual(curr_x::AbstractVector{V}) where {V}
-        res = MVector{P, V}(undef)
+        res = MVector{P,V}(undef)
         ws = curr_x[1:N]
         # nodes[alpha, d]
         nodes = reshape(curr_x[(N + 1):P], N, D)
@@ -93,7 +92,7 @@ function invert_moments(
             end
             res[p] = calc - target
         end
-        return SVector{P, V}(res)
+        return SVector{P,V}(res)
     end
 
     # 3. Newton-Raphson Loop with Auto-Diff
@@ -108,8 +107,8 @@ function invert_moments(
     end
 
     # 4. Assembly
-    final_weights = SVector{N, T}(x[1:N])
-    final_nodes = SMatrix{N, D, T}(reshape(x[(N + 1):P], N, D))
+    final_weights = SVector{N,T}(x[1:N])
+    final_nodes = SMatrix{N,D,T}(reshape(x[(N + 1):P], N, D))
 
     return QuadratureResult(final_weights, final_nodes, nothing)
 end

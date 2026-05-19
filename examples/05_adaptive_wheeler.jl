@@ -12,7 +12,7 @@ println("5. 极值情况与自适应降阶 (Adaptive Wheeler)
 nodes = [1.0, 2.0]
 weights = [0.5, 0.5]
 m_deg_array = [sum(weights[i] * nodes[i]^k for i in 1:2) for k in 0:7]
-m_degenerate = SVector{8, Float64}(m_deg_array...)
+m_degenerate = SVector{8,Float64}(m_deg_array...)
 
 println("退化矩序列 (理论上只支持 N=2):")
 println(m_degenerate)
@@ -26,8 +26,13 @@ res = invert_moments(method_w, m_degenerate)
 println("
 --- 降阶后的结果 ---")
 for i in 1:4
-    @printf("节点 %d: %8.4f, 权重: %8.4f
-", i, res.nodes[i], res.weights[i])
+    @printf(
+        "节点 %d: %8.4f, 权重: %8.4f
+",
+        i,
+        res.nodes[i],
+        res.weights[i]
+    )
 end
 println("
 可以看到，多余的两个节点权重被安全地置为了 0.0，且没有引发除零崩溃。")

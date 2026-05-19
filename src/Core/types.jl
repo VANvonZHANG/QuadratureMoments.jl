@@ -33,7 +33,7 @@ Base abstract type for all Quadrature-Based Moment Methods.
 - `D::Int`: Dimension of the internal coordinate space.
 - `N`: Number of quadrature nodes (can be `Int` or `Tuple` for multivariate).
 raw"""
-abstract type AbstractQBMM{D, N} end
+abstract type AbstractQBMM{D,N} end
 
 raw"""
     QuadratureResult{D, N, T}
@@ -45,10 +45,10 @@ Standardized container for moment inversion results.
 - `nodes::SMatrix{N, D, T}`: Positions of quadrature nodes in D-dimensional space.
 - `sigmas::Union{Nothing, SMatrix{N, D, T}}`: Bandwidth parameters for continuous kernels (EQMOM/ECQMOM).
 raw"""
-struct QuadratureResult{D, N, T}
-    weights::SVector{N, T}
-    nodes::SMatrix{N, D, T}
-    sigmas::Union{Nothing, SMatrix{N, D, T}}
+struct QuadratureResult{D,N,T}
+    weights::SVector{N,T}
+    nodes::SMatrix{N,D,T}
+    sigmas::Union{Nothing,SMatrix{N,D,T}}
 end
 
 raw"""
@@ -56,6 +56,6 @@ raw"""
 
 Convenience constructor for `QuadratureResult`. Automatically infers dimensions and types.
 raw"""
-function QuadratureResult(w::SVector{N, T}, n::SMatrix{N, D, T}, s=nothing) where {D, N, T}
-    return QuadratureResult{D, N, T}(w, n, s)
+function QuadratureResult(w::SVector{N,T}, n::SMatrix{N,D,T}, s=nothing) where {D,N,T}
+    return QuadratureResult{D,N,T}(w, n, s)
 end

@@ -30,7 +30,7 @@ raw"""
     end
 end
 
-@generated function _stirling2_static(::Val{n}, ::Val{k}) where {n, k}
+@generated function _stirling2_static(::Val{n}, ::Val{k}) where {n,k}
     S = [
         1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0;
         0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0;

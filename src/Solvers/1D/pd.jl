@@ -10,7 +10,7 @@ The Product-Difference (PD) algorithm for 1D moment inversion.
 # Type Parameters
 - `N::Int`: Number of quadrature nodes to reconstruct.
 raw"""
-struct PD{N} <: AbstractQBMM{1, N} end
+struct PD{N} <: AbstractQBMM{1,N} end
 
 raw"""
     PD(N::Int)
@@ -33,21 +33,17 @@ Perform 1D Product-Difference inversion.
 - A `QuadratureResult` containing weights and nodes.
 raw"""
 function invert_moments(
-    method::PD{N},
-    m::AbstractVector{T};
-    backend::AbstractMathBackend=NativeBackend(),
-) where {N, T}
+    method::PD{N}, m::AbstractVector{T}; backend::AbstractMathBackend=NativeBackend()
+) where {N,T}
     nodes, weights = pd_inversion(m)
-    return QuadratureResult(SVector{N, T}(weights), SMatrix{N, 1, T}(nodes), nothing)
+    return QuadratureResult(SVector{N,T}(weights), SMatrix{N,1,T}(nodes), nothing)
 end
 
 function invert_moments(
-    method::PD{N},
-    m::SVector{L, T};
-    backend::AbstractMathBackend=NativeBackend(),
-) where {N, L, T}
+    method::PD{N}, m::SVector{L,T}; backend::AbstractMathBackend=NativeBackend()
+) where {N,L,T}
     nodes, weights = _pd_inversion(m, Val(N))
-    return QuadratureResult(weights, SMatrix{N, 1, T}(nodes), nothing)
+    return QuadratureResult(weights, SMatrix{N,1,T}(nodes), nothing)
 end
 
 # --- Internal Implementations ---
@@ -92,8 +88,8 @@ function pd_inversion(m::AbstractVector{T}) where {T}
     return nodes, weights
 end
 
-function _pd_inversion(m::SVector{L, T}, ::Val{N}) where {L, T, N}
-    P = zero(MMatrix{L + 1, L + 1, T})
+function _pd_inversion(m::SVector{L,T}, ::Val{N}) where {L,T,N}
+    P = zero(MMatrix{L + 1,L + 1,T})
 
     P[1, 1] = one(T)
     for α in 1:L
@@ -106,18 +102,18 @@ function _pd_inversion(m::SVector{L, T}, ::Val{N}) where {L, T, N}
         end
     end
 
-    ζ = MVector{L, T}(undef)
+    ζ = MVector{L,T}(undef)
     ζ[1] = zero(T)
     for α in 2:L
         ζ[α] = P[1, α + 1] / (P[1, α] * P[1, α - 1])
     end
 
-    a = MVector{N, T}(undef)
+    a = MVector{N,T}(undef)
     for α in 1:N
         a[α] = ζ[2α] + ζ[2α - 1]
     end
 
-    J_M = zero(MMatrix{N, N, T})
+    J_M = zero(MMatrix{N,N,T})
     for i in 1:N
         J_M[i, i] = a[i]
     end
@@ -127,11 +123,11 @@ function _pd_inversion(m::SVector{L, T}, ::Val{N}) where {L, T, N}
         J_M[i + 1, i] = off
     end
 
-    J = SMatrix{N, N, T}(J_M)
+    J = SMatrix{N,N,T}(J_M)
     eigen_decomp = eigen(Symmetric(J))
 
-    nodes = SVector{N, T}(eigen_decomp.values)
-    weights = SVector{N, T}(ntuple(i -> m[1] * eigen_decomp.vectors[1, i]^2, Val(N)))
+    nodes = SVector{N,T}(eigen_decomp.values)
+    weights = SVector{N,T}(ntuple(i -> m[1] * eigen_decomp.vectors[1, i]^2, Val(N)))
 
     return nodes, weights
 end

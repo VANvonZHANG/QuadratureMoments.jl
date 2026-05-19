@@ -18,7 +18,7 @@ A source term representing particle breakage.
 
 The fragment moment is defined as: \$\bar{b}_k^{(i)} = \int_0^{\xi_i} v^k P(v|\xi_i) dv\$
 raw"""
-struct Breakage{F, P} <: AbstractSourceTerm
+struct Breakage{F,P} <: AbstractSourceTerm
     frequency_func::F
     fragment_moment_func::P
 end
@@ -31,24 +31,23 @@ The source term for the \$k\$-th moment is:
 \$S_k = \sum_{i=1}^N w_i b(\xi_i) \bar{b}_k^{(i)} - \sum_{i=1}^N w_i b(\xi_i) \xi_i^k\$
 raw"""
 function compute_source_terms(
-    breakage::Breakage,
-    nodes::SVector{N, T},
-    weights::SVector{N, T},
-    ::Val{L},
-) where {N, T, L}
-    return SVector{L, T}(ntuple(Val(L)) do idx
-        k = idx - 1
-        val = zero(T)
-        for i in 1:N
-            freq = breakage.frequency_func(nodes[i])
-            frag_moment = breakage.fragment_moment_func(k, nodes[i])
-            
-            # Birth term (fragments created) minus Death term (parent particle destroyed)
-            term_birth = weights[i] * freq * frag_moment
-            term_death = weights[i] * freq * (nodes[i]^k)
-            
-            val += (term_birth - term_death)
-        end
-        return val
-    end)
+    breakage::Breakage, nodes::SVector{N,T}, weights::SVector{N,T}, ::Val{L}
+) where {N,T,L}
+    return SVector{L,T}(
+        ntuple(Val(L)) do idx
+            k = idx - 1
+            val = zero(T)
+            for i in 1:N
+                freq = breakage.frequency_func(nodes[i])
+                frag_moment = breakage.fragment_moment_func(k, nodes[i])
+
+                # Birth term (fragments created) minus Death term (parent particle destroyed)
+                term_birth = weights[i] * freq * frag_moment
+                term_death = weights[i] * freq * (nodes[i]^k)
+
+                val += (term_birth - term_death)
+            end
+            return val
+        end,
+    )
 end

@@ -19,8 +19,13 @@ res_w = invert_moments(method_w, m)
 
 println("--- Wheeler 算法结果 (N=4) ---")
 for i in 1:4
-    @printf("节点 %d: %8.4f, 权重: %8.4f
-", i, res_w.nodes[i], res_w.weights[i])
+    @printf(
+        "节点 %d: %8.4f, 权重: %8.4f
+",
+        i,
+        res_w.nodes[i],
+        res_w.weights[i]
+    )
 end
 println()
 
@@ -30,8 +35,13 @@ res_pd = invert_moments(method_pd, m)
 
 println("--- PD 算法结果 (N=4) ---")
 for i in 1:4
-    @printf("节点 %d: %8.4f, 权重: %8.4f
-", i, res_pd.nodes[i], res_pd.weights[i])
+    @printf(
+        "节点 %d: %8.4f, 权重: %8.4f
+",
+        i,
+        res_pd.nodes[i],
+        res_pd.weights[i]
+    )
 end
 println()
 

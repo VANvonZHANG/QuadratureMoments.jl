@@ -23,9 +23,7 @@ non-realizable after `max_iter`.
 - A realizable moment sequence of the same length and type.
 raw"""
 function mcgraw_correction(
-    m::AbstractVector{T};
-    max_iter=20,
-    backend::AbstractMathBackend=NativeBackend(),
+    m::AbstractVector{T}; max_iter=20, backend::AbstractMathBackend=NativeBackend()
 ) where {T}
     L = length(m)
     if L < 4
@@ -33,21 +31,19 @@ function mcgraw_correction(
     end
 
     # Dynamic version dispatch
-    m_curr = (backend isa NativeBackend) ? MVector{L, T}(m) : collect(m)
+    m_curr = (backend isa NativeBackend) ? MVector{L,T}(m) : collect(m)
     m0_orig = m_curr[1]
 
     for iter in 1:max_iter
         if is_realizable(m_curr; backend=backend)
             m_curr[1] = m0_orig
-            return (backend isa NativeBackend) ? SVector{L, T}(m_curr) : m_curr
+            return (backend isa NativeBackend) ? SVector{L,T}(m_curr) : m_curr
         end
 
         # ln_m[k]
         ln_m = [log(max(m_curr[i], 1e-30)) for i in 1:L]
         # d3[j] = 3rd order difference
-        d3 = [
-            ln_m[j + 3] - 3 * ln_m[j + 2] + 3 * ln_m[j + 1] - ln_m[j] for j in 1:(L - 3)
-        ]
+        d3 = [ln_m[j + 3] - 3 * ln_m[j + 2] + 3 * ln_m[j + 1] - ln_m[j] for j in 1:(L - 3)]
 
         sum_d3_2 = dot(d3, d3)
         if sum_d3_2 < 1e-15
@@ -94,35 +90,32 @@ function mcgraw_correction(
         return wright_fallback(m_curr, backend)
     end
 
-    return (backend isa NativeBackend) ? SVector{L, T}(m_curr) : m_curr
+    return (backend isa NativeBackend) ? SVector{L,T}(m_curr) : m_curr
 end
 
 raw"""
     mcgraw_correction(m::StaticVector; max_iter=20, backend=NativeBackend())
 raw"""
 @inline function mcgraw_correction(
-    m::StaticVector{L, T};
-    max_iter=20,
-    backend::AbstractMathBackend=NativeBackend(),
-) where {L, T}
+    m::StaticVector{L,T}; max_iter=20, backend::AbstractMathBackend=NativeBackend()
+) where {L,T}
     if L < 4
         return m
     end
 
-    m_curr = MVector{L, T}(m)
+    m_curr = MVector{L,T}(m)
     m0_orig = m_curr[1]
 
     for iter in 1:max_iter
         if is_realizable(m_curr; backend=backend)
             m_curr[1] = m0_orig
-            return SVector{L, T}(m_curr)
+            return SVector{L,T}(m_curr)
         end
 
         # Zero-allocation ln_m and d3 using ntuple
         ln_m = ntuple(i -> log(max(m_curr[i], 1e-30)), Val(L))
         d3 = ntuple(
-            j -> ln_m[j + 3] - 3 * ln_m[j + 2] + 3 * ln_m[j + 1] - ln_m[j],
-            Val(L - 3),
+            j -> ln_m[j + 3] - 3 * ln_m[j + 2] + 3 * ln_m[j + 1] - ln_m[j], Val(L - 3)
         )
 
         sum_d3_2 = 0.0
@@ -188,7 +181,7 @@ raw"""
     if !is_realizable(m_curr; backend=backend)
         return wright_fallback(m_curr, backend)
     end
-    return SVector{L, T}(m_curr)
+    return SVector{L,T}(m_curr)
 end
 
 raw"""
@@ -226,15 +219,15 @@ function wright_fallback(m::AbstractVector{T}, ::ExternalBackend) where {T}
     return m_res
 end
 
-@inline function wright_fallback(m::StaticVector{L, T}, ::NativeBackend) where {L, T}
+@inline function wright_fallback(m::StaticVector{L,T}, ::NativeBackend) where {L,T}
     m0, m1, m2 = m[1], m[2], m[3]
     var_term = m2 * m0 / (m1^2)
     if var_term <= 1.0
-        return SVector{L, T}(ntuple(k -> m0 * (m1 / m0)^(k - 1), Val(L)))
+        return SVector{L,T}(ntuple(k -> m0 * (m1 / m0)^(k - 1), Val(L)))
     else
         sig2 = log(var_term)
         mu = log(m1 / m0) - 0.5 * sig2
-        return SVector{L, T}(
+        return SVector{L,T}(
             ntuple(
                 k -> k <= 3 ? m[k] : m0 * exp((k - 1) * mu + 0.5 * ((k - 1)^2) * sig2),
                 Val(L),
@@ -243,6 +236,6 @@ end
     end
 end
 
-@inline function wright_fallback(m::MVector{L, T}, backend::NativeBackend) where {L, T}
-    return wright_fallback(SVector{L, T}(m), backend)
+@inline function wright_fallback(m::MVector{L,T}, backend::NativeBackend) where {L,T}
+    return wright_fallback(SVector{L,T}(m), backend)
 end

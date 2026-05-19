@@ -19,7 +19,7 @@ end
 N = 3
 w0 = @SVector [0.2, 0.6, 0.2]
 x0 = @SVector [1.0, 2.0, 3.0]
-m0 = SVector{2N}(sum(w0[i] * x0[i]^k for i in 1:N) for k in 0:2N-1)
+m0 = SVector{2N}(sum(w0[i] * x0[i]^k for i in 1:N) for k in 0:(2N - 1))
 
 # 剧烈物理过程 (常数核聚并)
 physics = Aggregation((x, y) -> 1.0)
@@ -56,7 +56,7 @@ success_dqmom = true
 for step in 1:20
     try
         w = SVector{N}(u_current[1:N])
-        b = SVector{N}(u_current[N+1:2N])
+        b = SVector{N}(u_current[(N + 1):2N])
         nodes = SVector{N}(b ./ max.(w, 1e-12))
         S_k = compute_source_terms(physics, nodes, w, Val(2N))
         da, db = dqmom_solve(dqmom_method, nodes, S_k)

@@ -7,7 +7,7 @@ println("6. DQMOM 与物理源项的模块化组合\n")
 
 N = 3
 weights = @SVector [0.3, 0.4, 0.3]
-nodes   = @SVector [1.0, 2.0, 3.0]
+nodes = @SVector [1.0, 2.0, 3.0]
 
 println("初始状态:")
 println("Weights: ", weights)

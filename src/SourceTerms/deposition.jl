@@ -27,17 +27,16 @@ The source term for the \$k\$-th moment is strictly negative (sink):
 \$S_k = - \sum_{i=1}^N w_i K_{dep}(\xi_i) \xi_i^k\$
 raw"""
 function compute_source_terms(
-    dep::Deposition,
-    nodes::SVector{N, T},
-    weights::SVector{N, T},
-    ::Val{L},
-) where {N, T, L}
-    return SVector{L, T}(ntuple(Val(L)) do idx
-        k = idx - 1
-        val = zero(T)
-        for i in 1:N
-            val -= weights[i] * dep.rate_func(nodes[i]) * (nodes[i]^k)
-        end
-        return val
-    end)
+    dep::Deposition, nodes::SVector{N,T}, weights::SVector{N,T}, ::Val{L}
+) where {N,T,L}
+    return SVector{L,T}(
+        ntuple(Val(L)) do idx
+            k = idx - 1
+            val = zero(T)
+            for i in 1:N
+                val -= weights[i] * dep.rate_func(nodes[i]) * (nodes[i]^k)
+            end
+            return val
+        end,
+    )
 end

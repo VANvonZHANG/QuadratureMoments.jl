@@ -25,7 +25,7 @@ for the disappearance rate.
 - `rate_func::F`: A function `G(xi)` that returns the continuous shrinkage rate (\$d\xi/dt < 0\$) of a particle of size `xi`.
 - `zero_flux_func::D`: A function `f(nodes, weights)` that returns the rate of change of the total particle number (\$S_0 = dm_0/dt \le 0\$).
 raw"""
-struct ParticleShrinkage{F, D} <: AbstractSourceTerm
+struct ParticleShrinkage{F,D} <: AbstractSourceTerm
     rate_func::F
     zero_flux_func::D
 end
@@ -38,22 +38,21 @@ Compute the moment source terms due to continuous particle shrinkage.
 - For \$k \ge 1\$: \$S_k = \sum_{i=1}^N w_i k \xi_i^{k-1} G(\xi_i)\$.
 raw"""
 function compute_source_terms(
-    shrink::ParticleShrinkage,
-    nodes::SVector{N, T},
-    weights::SVector{N, T},
-    ::Val{L},
-) where {N, T, L}
-    return SVector{L, T}(ntuple(Val(L)) do idx
-        k = idx - 1
-        if k == 0
-            # S_0 is determined by the specific boundary flux closure model
-            return T(shrink.zero_flux_func(nodes, weights))
-        else
-            val = zero(T)
-            for i in 1:N
-                val += weights[i] * k * (nodes[i]^(k - 1)) * shrink.rate_func(nodes[i])
+    shrink::ParticleShrinkage, nodes::SVector{N,T}, weights::SVector{N,T}, ::Val{L}
+) where {N,T,L}
+    return SVector{L,T}(
+        ntuple(Val(L)) do idx
+            k = idx - 1
+            if k == 0
+                # S_0 is determined by the specific boundary flux closure model
+                return T(shrink.zero_flux_func(nodes, weights))
+            else
+                val = zero(T)
+                for i in 1:N
+                    val += weights[i] * k * (nodes[i]^(k - 1)) * shrink.rate_func(nodes[i])
+                end
+                return val
             end
-            return val
-        end
-    end)
+        end,
+    )
 end

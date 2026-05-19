@@ -19,12 +19,8 @@ Reconstruct the \$k\$-th order moment from an EQMOM continuous distribution.
 - The reconstructed moment of type `T`.
 raw"""
 function reconstruct_moment(
-    nodes::SMatrix{N, 1, T},
-    weights::SVector{N, T},
-    k::Int,
-    σ::T,
-    ::GaussianKernel,
-) where {N, T}
+    nodes::SMatrix{N,1,T}, weights::SVector{N,T}, k::Int, σ::T, ::GaussianKernel
+) where {N,T}
     # E[X^k] for Gaussian kernel with mean x_i and variance sigma^2
     # sum_i w_i * sum_{j=0}^{floor(k/2)} (k! / (j!(k-2j)!)) * x_i^(k-2j) * (sigma^2/2)^j
     res = zero(T)
@@ -47,12 +43,8 @@ function reconstruct_moment(
 end
 
 function reconstruct_moment(
-    nodes::SMatrix{N, 1, T},
-    weights::SVector{N, T},
-    k::Int,
-    σ::T,
-    ::GammaKernel,
-) where {N, T}
+    nodes::SMatrix{N,1,T}, weights::SVector{N,T}, k::Int, σ::T, ::GammaKernel
+) where {N,T}
     # Gamma EQMOM: m_k = sum_i w_i * Prod_{j=0}^{k-1} (x_i + j * sigma)
     res = zero(T)
     for i in 1:N
@@ -66,12 +58,8 @@ function reconstruct_moment(
 end
 
 function reconstruct_moment(
-    nodes::SMatrix{N, 1, T},
-    weights::SVector{N, T},
-    k::Int,
-    σ::T,
-    ::BetaKernel,
-) where {N, T}
+    nodes::SMatrix{N,1,T}, weights::SVector{N,T}, k::Int, σ::T, ::BetaKernel
+) where {N,T}
     # Beta EQMOM: m_k = (sum_i w_i * Prod_{j=0}^{k-1} (x_i + j*sigma)) / Prod_{j=0}^{k-1} (1 + j*sigma)
     res = zero(T)
     den = one(T)
