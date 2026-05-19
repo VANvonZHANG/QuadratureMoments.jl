@@ -27,7 +27,7 @@ using LinearAlgebra
         @test size(nodes) == (2, 2)
         @test isapprox(sum(weights), 1.0, atol=1e-5)
 
-        # 验证矩重构
+        # Verify moment reconstruction
         for i in 1:2, j in 1:2
             pred = sum(
                 weights[alpha] * nodes[alpha, 1]^(i-1) * nodes[alpha, 2]^(j-1) for

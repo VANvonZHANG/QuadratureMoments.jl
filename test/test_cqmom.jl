@@ -5,12 +5,12 @@ using LinearAlgebra
 
 @testset "CQMOM Recursive Implementation" begin
     @testset "2D Case: Independent Variables" begin
-        # 两个独立的正态分布: x ~ N(1, 0.1), y ~ N(2, 0.2)
+        # Two independent normal distributions: x ~ N(1, 0.1), y ~ N(2, 0.2)
         N = (2, 2)
 
-        # 计算 2D 独立分布的矩: m[i, j] = m_x[i] * m_y[j]
-        mx = [1.0, 1.0, 1.1, 1.3] # 0..3 阶矩
-        my = [1.0, 2.0, 4.2, 9.2] # 0..3 阶矩
+        # Compute moments of 2D independent distribution: m[i, j] = m_x[i] * m_y[j]
+        mx = [1.0, 1.0, 1.1, 1.3] # 0th-3rd order moments
+        my = [1.0, 2.0, 4.2, 9.2] # 0th-3rd order moments
 
         m_data = zeros(4, 4)
         for i in 1:4, j in 1:4
@@ -27,7 +27,7 @@ using LinearAlgebra
         @test size(nodes) == (4, 2)
         @test length(weights) == 4
 
-        # 验证矩重构
+        # Verify moment reconstruction
         for i in 1:2, j in 1:2
             pred = sum(weights[k] * nodes[k, 1]^(i-1) * nodes[k, 2]^(j-1) for k in 1:4)
             @test isapprox(pred, m_data[i, j], atol=1e-8)

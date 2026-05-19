@@ -3,34 +3,31 @@ using QBMM
 using StaticArrays
 using Printf
 
-println("=== 模块一：静态分布的反演算法 ===")
-println("2. 连续分布重建 (EQMOM)
-")
+println("=== Module 1: Inversion Algorithms for Static Distributions ===")
+println("2. Continuous Distribution Reconstruction (EQMOM)\n")
 
-# 具有一定宽度的高斯核组成的矩序列 (混合正态分布)
+# Moment sequence composed of Gaussian kernels with nonzero width (mixture of normals)
 m_extended = @SVector [1.0, 5.2, 29.0, 170.8, 1051.0]
 
-println("输入矩序列: ", m_extended)
+println("Input moment sequence: ", m_extended)
 println()
 
-# 使用 N=2 的高斯核 EQMOM (因为给定了5个矩)
+# Using N=2 Gaussian-kernel EQMOM (since 5 moments are given)
 method_eq = EQMOM(2, GaussianKernel())
 res_eq = invert_moments(method_eq, m_extended)
 
-println("--- EQMOM (Gaussian Kernel, N=2) 结果 ---")
+println("--- EQMOM (Gaussian Kernel, N=2) results ---")
 for i in 1:2
     @printf(
-        "节点 (均值) %d: %8.4f, 权重: %8.4f
-",
+        "Node (mean) %d: %8.4f, Weight: %8.4f\n",
         i,
         res_eq.nodes[i],
         res_eq.weights[i]
     )
 end
 @printf(
-    "全局带宽参数 σ: %8.4f
-",
+    "Global bandwidth parameter sigma: %8.4f\n",
     res_eq.sigmas[1]
 )
 println()
-println("对比标准 QMOM（所有概率质量集中在离散节点上），EQMOM 提供了一个具有非零 σ 的平滑分布的近似。")
+println("Compared with standard QMOM (where all probability mass is concentrated at discrete nodes), EQMOM provides an approximation of a smooth distribution with nonzero sigma.")

@@ -1,4 +1,4 @@
-# QBMM.jl 核心测试套件
+# QBMM.jl Core Test Suite
 using QBMM
 using Test
 using LinearAlgebra
@@ -9,7 +9,7 @@ using StaticArrays
 
     @testset "StaticArrays Version" begin
         res = invert_moments(Wheeler(2), m)
-        nodes = vec(res.nodes) # 使用 vec 解决 dot 维度不匹配
+        nodes = vec(res.nodes) # Use vec to resolve dimension mismatch in dot
         weights = res.weights
 
         @test sum(weights) ≈ 1.0

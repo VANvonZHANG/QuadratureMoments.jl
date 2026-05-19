@@ -3,7 +3,7 @@ using StaticArrays
 using QBMM
 using LinearAlgebra
 
-# 创建 Benchmark 组
+# Create Benchmark groups
 const suite = BenchmarkGroup()
 
 suite["Wheeler Inversion"] = BenchmarkGroup()
@@ -65,7 +65,7 @@ suite["DQMOM Solve"]["Static Array"] = @benchmarkable dqmom_solve(
 )
 
 # ---------------------------------------------------------
-# 运行并打印简明报告
+# Run and print concise report
 # ---------------------------------------------------------
 
 println("=========================================================")

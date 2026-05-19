@@ -4,7 +4,7 @@ using StaticArrays
 
 @testset "Tensor-product QMOM" begin
     @testset "2D Independent Variables" begin
-        # 两个独立变量: x ~ {1.0, 2.0} w={0.5, 0.5}, y ~ {3.0, 4.0} w={0.5, 0.5}
+        # Two independent variables: x ~ {1.0, 2.0} w={0.5, 0.5}, y ~ {3.0, 4.0} w={0.5, 0.5}
         mx = SVector{4,Float64}(1.0, 1.5, 2.5, 4.5)
         my = SVector{4,Float64}(1.0, 3.5, 12.5, 45.5)
 
@@ -17,7 +17,7 @@ using StaticArrays
         @test length(weights) == 4
         @test sum(weights) ≈ 1.0
 
-        # 验证节点组合是否为 (1,3), (2,3), (1,4), (2,4)
+        # Verify node combinations are (1,3), (2,3), (1,4), (2,4)
         @test isapprox(vec(nodes[1, :]), [1.0, 3.0])
         @test isapprox(vec(nodes[2, :]), [2.0, 3.0])
         @test isapprox(vec(nodes[3, :]), [1.0, 4.0])

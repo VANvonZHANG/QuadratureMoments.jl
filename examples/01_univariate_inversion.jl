@@ -3,25 +3,23 @@ using QBMM
 using StaticArrays
 using Printf
 
-println("=== 模块一：静态分布的反演算法 ===")
-println("1. 单变量反演验证 (Univariate Inversion)
-")
+println("=== Module 1: Inversion Algorithms for Static Distributions ===")
+println("1. Univariate Inversion Verification\n")
 
-# 正态分布的矩（均值 μ=5.0, 标准差 σ=1.0）
+# Moments of a normal distribution (mean mu=5.0, std sigma=1.0)
 m = @SVector [1.0, 5.0, 26.0, 140.0, 778.0, 4450.0, 26140.0, 157400.0]
 
-println("输入矩序列: ", m)
+println("Input moment sequence: ", m)
 println()
 
-# 1. 使用 Wheeler 算法 (N=4)
+# 1. Using the Wheeler algorithm (N=4)
 method_w = Wheeler(4)
 res_w = invert_moments(method_w, m)
 
-println("--- Wheeler 算法结果 (N=4) ---")
+println("--- Wheeler algorithm results (N=4) ---")
 for i in 1:4
     @printf(
-        "节点 %d: %8.4f, 权重: %8.4f
-",
+        "Node %d: %8.4f, Weight: %8.4f\n",
         i,
         res_w.nodes[i],
         res_w.weights[i]
@@ -29,15 +27,14 @@ for i in 1:4
 end
 println()
 
-# 2. 使用 PD 算法 (N=4)
+# 2. Using the PD algorithm (N=4)
 method_pd = PD(4)
 res_pd = invert_moments(method_pd, m)
 
-println("--- PD 算法结果 (N=4) ---")
+println("--- PD algorithm results (N=4) ---")
 for i in 1:4
     @printf(
-        "节点 %d: %8.4f, 权重: %8.4f
-",
+        "Node %d: %8.4f, Weight: %8.4f\n",
         i,
         res_pd.nodes[i],
         res_pd.weights[i]
@@ -45,5 +42,5 @@ for i in 1:4
 end
 println()
 
-println("预期节点应接近: 2.6656, 4.2580, 5.7420, 7.3344")
-println("预期权重应接近: 0.0459, 0.4541, 0.4541, 0.0459")
+println("Expected nodes should be close to: 2.6656, 4.2580, 5.7420, 7.3344")
+println("Expected weights should be close to: 0.0459, 0.4541, 0.4541, 0.0459")
