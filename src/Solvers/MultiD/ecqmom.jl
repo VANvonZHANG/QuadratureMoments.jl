@@ -1,11 +1,11 @@
-# QBMM.jl/src/Solvers/MultiD/ecqmom.jl
+# src/Solvers/MultiD/ecqmom.jl
 
 using LinearAlgebra
 using StaticArrays
-using ..QBMM:
+using ..QuadratureMoments:
     AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend, QuadratureResult
-using ..QBMM: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
-using ..QBMM: EQMOM, solve_vandermonde_transpose, compute_modified_moments
+using ..QuadratureMoments: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
+using ..QuadratureMoments: EQMOM, solve_vandermonde_transpose, compute_modified_moments
 
 raw"""
     ECQMOM{D, N, NT, K} <: AbstractQBMM{D, NT}

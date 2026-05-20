@@ -1,5 +1,5 @@
 # examples/09_performance_benchmarks.jl
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using BenchmarkTools
 

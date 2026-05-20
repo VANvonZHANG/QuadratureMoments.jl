@@ -1,7 +1,7 @@
 using Test
-using QBMM
+using QuadratureMoments
 
-@testset "QBMM.jl" begin
+@testset "QuadratureMoments.jl" begin
     include("test_wheeler.jl")
     include("test_adaptive_wheeler.jl")
     include("test_pd.jl")

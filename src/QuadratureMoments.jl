@@ -1,7 +1,7 @@
-module QBMM
+module QuadratureMoments
 
 raw"""
-    QBMM
+    QuadratureMoments
 
 A high-performance Julia library for Quadrature-Based Moment Methods.
 Optimized for industrial-grade CFD solvers with zero-allocation execution paths.
@@ -80,7 +80,7 @@ A `QuadratureResult` structure containing weights, nodes, and optional sigmas.
 
 # Examples
 ```julia
-using QBMM, StaticArrays
+using QuadratureMoments, StaticArrays
 m = @SVector [1.0, 5.0, 26.0, 140.0]
 res = invert_moments(Wheeler(2), m)
 ```

@@ -1,5 +1,5 @@
 # examples/05_adaptive_wheeler.jl
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using Printf
 

@@ -1,5 +1,5 @@
 # examples/08_dqmom_vs_smm.jl
-using QBMM
+using QuadratureMoments
 using StaticArrays
 
 println("=== Module 3: Physical Source Terms and Dynamic Evolution ===")

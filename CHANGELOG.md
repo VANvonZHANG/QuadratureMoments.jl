@@ -36,5 +36,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI pipeline failures resolved; test matrix simplified for reliability
 - JuliaFormatter compatibility fixed and blue style applied across codebase
 
-[unreleased]: https://github.com/VANvonZHANG/QBMM.jl/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/VANvonZHANG/QBMM.jl/releases/tag/v0.1.0
+[unreleased]: https://github.com/VANvonZHANG/QuadratureMoments.jl/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/VANvonZHANG/QuadratureMoments.jl/releases/tag/v0.1.0

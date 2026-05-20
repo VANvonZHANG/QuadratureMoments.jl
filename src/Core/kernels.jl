@@ -1,4 +1,4 @@
-# QBMM.jl/src/Core/kernels.jl
+# src/Core/kernels.jl
 
 raw"""
     AbstractKernel

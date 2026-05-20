@@ -1,28 +1,28 @@
-# QBMM.jl
+# QuadratureMoments.jl
 
-[![Build Status](https://github.com/VANvonZHANG/QBMM.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/VANvonZHANG/QBMM.jl/actions)
-[![Coverage](https://codecov.io/gh/VANvonZHANG/QBMM.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/VANvonZHANG/QBMM.jl)
+[![Build Status](https://github.com/VANvonZHANG/QuadratureMoments.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/VANvonZHANG/QuadratureMoments.jl/actions)
+[![Coverage](https://codecov.io/gh/VANvonZHANG/QuadratureMoments.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/VANvonZHANG/QuadratureMoments.jl)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 **High-Performance Quadrature-Based Moment Methods for Mesoscale Modeling in Julia.**
 
-`QBMM.jl` is a high-performance Julia library designed for mesoscale modeling of polydisperse particulate and multiphase systems. It provides a comprehensive suite of moment-inversion algorithms (QMOM, EQMOM, CQMOM, ECQMOM, DQMOM) optimized for industrial-grade CFD applications, emphasizing numerical robustness, zero-allocation execution, and a unified API.
+`QuadratureMoments.jl` is a high-performance Julia library designed for mesoscale modeling of polydisperse particulate and multiphase systems. It provides a comprehensive suite of moment-inversion algorithms (QMOM, EQMOM, CQMOM, ECQMOM, DQMOM) optimized for industrial-grade CFD applications, emphasizing numerical robustness, zero-allocation execution, and a unified API.
 
 ---
 
 ## 1. Installation
 
-`QBMM.jl` is currently available via GitHub. You can install it using the Julia package manager:
+`QuadratureMoments.jl` is currently available via GitHub. You can install it using the Julia package manager:
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/VANvonZHANG/QBMM.jl.git")
+Pkg.add(url="https://github.com/VANvonZHANG/QuadratureMoments.jl.git")
 ```
 
 ---
 
 ## 2. Project Positioning
-In the simulation of multiphase flows (e.g., sprays, aerosols, crystallization), the evolution of the Number Density Function (NDF) is governed by the **Generalized Population Balance Equation (GPBE)**. `QBMM.jl` provides both the mathematical "engine" (moment inversion algorithms) and the physical closure models (source terms) to close the moment-transport equations derived from the GPBE. This allows CFD software to seamlessly reconstruct distributions and calculate the advection and reaction of the disperse phase.
+In the simulation of multiphase flows (e.g., sprays, aerosols, crystallization), the evolution of the Number Density Function (NDF) is governed by the **Generalized Population Balance Equation (GPBE)**. `QuadratureMoments.jl` provides both the mathematical "engine" (moment inversion algorithms) and the physical closure models (source terms) to close the moment-transport equations derived from the GPBE. This allows CFD software to seamlessly reconstruct distributions and calculate the advection and reaction of the disperse phase.
 
 ## 3. Mathematical Background
 This library implements the core algorithms described in **Marchisio & Fox (2013)**. The primary challenge in QBMM is the **Moment Inversion Problem**: finding a quadrature approximation (weights $w_\alpha$ and nodes $\xi_\alpha$) that matches a set of known moments $m_k = \int \xi^k n(\xi) d\xi$.
@@ -67,7 +67,7 @@ These physical processes can be intuitively superposed using the `+` operator, w
 
 ### 1D QMOM (Wheeler Inversion)
 ```julia
-using QBMM, StaticArrays
+using QuadratureMoments, StaticArrays
 
 m = @SVector [1.0, 5.0, 26.0, 140.0] 
 method = Wheeler(2) # Or Wheeler{2}() for static dispatch
@@ -78,7 +78,7 @@ res = invert_moments(method, m)
 ### Physical Superposition with DQMOM
 Demonstrating the elegance of the physical-mathematical architecture:
 ```julia
-using QBMM, StaticArrays
+using QuadratureMoments, StaticArrays
 
 nodes = @SVector [1.0, 2.0, 3.0]
 weights = @SVector [0.5, 0.3, 0.2]
@@ -129,7 +129,7 @@ To achieve the best performance in high-frequency loops:
 ---
 
 ## 8. Citing
-If you use `QBMM.jl` in your research, please cite the following work:
+If you use `QuadratureMoments.jl` in your research, please cite the following work:
 
 ```bibtex
 @book{marchisio2013computational,

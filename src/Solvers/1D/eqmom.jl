@@ -1,12 +1,12 @@
-# QBMM.jl/src/Solvers/1D/eqmom.jl
+# src/Solvers/1D/eqmom.jl
 
 using Roots
 using LinearAlgebra
 using StaticArrays
-using ..QBMM:
+using ..QuadratureMoments:
     AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend, QuadratureResult
-using ..QBMM: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
-using ..QBMM: stirling2, reconstruct_moment, Wheeler
+using ..QuadratureMoments: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
+using ..QuadratureMoments: stirling2, reconstruct_moment, Wheeler
 
 raw"""
     EQMOM{N, K} <: AbstractQBMM{1, N}

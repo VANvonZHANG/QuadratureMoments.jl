@@ -1,7 +1,7 @@
 # src/SourceTerms/aggregation.jl
 
 using StaticArrays
-using ..QBMM: AbstractSourceTerm
+using ..QuadratureMoments: AbstractSourceTerm
 
 raw"""
     Aggregation{K} <: AbstractSourceTerm

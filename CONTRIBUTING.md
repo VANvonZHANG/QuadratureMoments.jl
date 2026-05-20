@@ -1,12 +1,12 @@
-# QBMM.jl Developer Guide & Contributing Guidelines
+# QuadratureMoments.jl Developer Guide & Contributing Guidelines
 
-Welcome to the `QBMM.jl` developer community! This document provides a deep dive into the library's architecture, design philosophy, and the strict performance standards required for contributions.
+Welcome to the `QuadratureMoments.jl` developer community! This document provides a deep dive into the library's architecture, design philosophy, and the strict performance standards required for contributions.
 
 ---
 
 ## 1. Project Architecture Overview
 
-`QBMM.jl` is organized into a layered architecture to separate low-level mathematical kernels from high-level physics-based solvers.
+`QuadratureMoments.jl` is organized into a layered architecture to separate low-level mathematical kernels from high-level physics-based solvers.
 
 ```text
 src/
@@ -36,7 +36,7 @@ We use an abstract type hierarchy and traits to ensure a unified API:
 
 ## 2. Performance Red-Line: Zero-Allocation Policy
 
-`QBMM.jl` is designed to be used inside the inner loops of CFD solvers. Therefore, **heap allocations in the core inversion path are strictly prohibited.**
+`QuadratureMoments.jl` is designed to be used inside the inner loops of CFD solvers. Therefore, **heap allocations in the core inversion path are strictly prohibited.**
 
 ### 2.1 The Rules
 When contributing to `Solvers/` or `Math/`:
@@ -77,7 +77,7 @@ The multivariate solvers use a **Recursive Deconvolution** strategy to avoid the
 **Developer Note**: When modifying `src/Solvers/MultiD/cqmom.jl`, ensure the `backend` is passed down through all recursive calls to maintain performance consistency.
 
 ### 3.3 Adding New Physical Source Terms
-`QBMM.jl` uses a composition-based physics engine. To add a new microscale physical process (e.g., a specific collision kernel or reaction):
+`QuadratureMoments.jl` uses a composition-based physics engine. To add a new microscale physical process (e.g., a specific collision kernel or reaction):
 
 1. **Define the type** in `src/SourceTerms/` inheriting from `AbstractSourceTerm`.
 2. **Implement `compute_source_terms`**:
@@ -101,4 +101,4 @@ The multivariate solvers use a **Recursive Deconvolution** strategy to avoid the
 
 ---
 
-Thank you for helping us make `QBMM.jl` the fastest moment-method library in the Julia ecosystem!
+Thank you for helping us make `QuadratureMoments.jl` the fastest moment-method library in the Julia ecosystem!

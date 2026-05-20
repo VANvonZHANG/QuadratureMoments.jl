@@ -1,4 +1,4 @@
-using QBMM
+using QuadratureMoments
 using Test
 using StaticArrays
 

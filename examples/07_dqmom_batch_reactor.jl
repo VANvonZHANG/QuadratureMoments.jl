@@ -1,5 +1,5 @@
 # examples/07_dqmom_batch_reactor.jl
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using Printf
 

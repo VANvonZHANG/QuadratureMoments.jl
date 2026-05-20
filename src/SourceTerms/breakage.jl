@@ -1,7 +1,7 @@
 # src/SourceTerms/breakage.jl
 
 using StaticArrays
-using ..QBMM: AbstractSourceTerm
+using ..QuadratureMoments: AbstractSourceTerm
 
 raw"""
     Breakage{F, P} <: AbstractSourceTerm

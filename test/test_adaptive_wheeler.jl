@@ -1,6 +1,6 @@
-# QBMM.jl/test/test_adaptive_wheeler.jl
+# test/test_adaptive_wheeler.jl
 using Test
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using LinearAlgebra
 

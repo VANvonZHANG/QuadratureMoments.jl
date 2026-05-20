@@ -1,7 +1,7 @@
 # src/SourceTerms/deposition.jl
 
 using StaticArrays
-using ..QBMM: AbstractSourceTerm
+using ..QuadratureMoments: AbstractSourceTerm
 
 raw"""
     Deposition{F} <: AbstractSourceTerm

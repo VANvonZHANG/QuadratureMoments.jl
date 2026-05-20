@@ -1,7 +1,7 @@
-# QBMM.jl/src/Math/moments_utils.jl
+# src/Math/moments_utils.jl
 
 using StaticArrays
-using ..QBMM: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
+using ..QuadratureMoments: AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
 
 raw"""
     reconstruct_moment(nodes, weights, k, sigma, kernel) -> Float64

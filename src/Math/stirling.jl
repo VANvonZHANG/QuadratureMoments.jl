@@ -1,4 +1,4 @@
-# QBMM.jl/src/Math/stirling.jl
+# src/Math/stirling.jl
 
 using StaticArrays
 using Combinatorics: stirlings2 as comb_stirlings2

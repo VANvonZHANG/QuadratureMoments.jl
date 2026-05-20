@@ -1,10 +1,10 @@
 # examples/source_terms_physics.jl
 
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using Printf
 
-println("=== QBMM.jl Physical Source Terms & DQMOM Example ===")
+println("=== QuadratureMoments.jl Physical Source Terms & DQMOM Example ===")
 println("Replicating textbook examples for Pure Aggregation and Particle Growth.
 ")
 

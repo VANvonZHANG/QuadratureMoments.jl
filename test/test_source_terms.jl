@@ -1,7 +1,7 @@
 # test/test_source_terms.jl
 
 using Test
-using QBMM
+using QuadratureMoments
 using StaticArrays
 
 @testset "SourceTerms and Physical Closures" begin

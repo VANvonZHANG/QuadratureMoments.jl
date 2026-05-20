@@ -1,6 +1,6 @@
 using BenchmarkTools
 using StaticArrays
-using QBMM
+using QuadratureMoments
 using LinearAlgebra
 
 # Create Benchmark groups
@@ -69,7 +69,7 @@ suite["DQMOM Solve"]["Static Array"] = @benchmarkable dqmom_solve(
 # ---------------------------------------------------------
 
 println("=========================================================")
-println("    QBMM.jl High-Performance Benchmark Suite")
+println("    QuadratureMoments.jl High-Performance Benchmark Suite")
 println("=========================================================")
 
 tune!(suite)

@@ -1,10 +1,10 @@
-# QBMM.jl/src/Solvers/MultiD/cqmom.jl
+# src/Solvers/MultiD/cqmom.jl
 
 using LinearAlgebra
 using StaticArrays
-using ..QBMM:
+using ..QuadratureMoments:
     AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend, QuadratureResult
-using ..QBMM: Wheeler, solve_vandermonde_transpose
+using ..QuadratureMoments: Wheeler, solve_vandermonde_transpose
 
 raw"""
     CQMOM{D, N, NT} <: AbstractQBMM{D, NT}

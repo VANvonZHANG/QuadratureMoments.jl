@@ -1,6 +1,6 @@
-# QBMM.jl/test/test_dqmom.jl
+# test/test_dqmom.jl
 using Test
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using LinearAlgebra
 

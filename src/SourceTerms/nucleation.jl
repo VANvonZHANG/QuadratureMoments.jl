@@ -1,7 +1,7 @@
 # src/SourceTerms/nucleation.jl
 
 using StaticArrays
-using ..QBMM: AbstractSourceTerm
+using ..QuadratureMoments: AbstractSourceTerm
 
 raw"""
     Nucleation{T} <: AbstractSourceTerm

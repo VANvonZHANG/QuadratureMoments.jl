@@ -1,5 +1,5 @@
 # examples/06_composite_source_terms.jl
-using QBMM
+using QuadratureMoments
 using StaticArrays
 
 println("=== Module 3: Physical Source Terms and Dynamic Evolution ===")

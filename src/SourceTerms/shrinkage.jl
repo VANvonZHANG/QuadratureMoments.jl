@@ -1,7 +1,7 @@
 # src/SourceTerms/shrinkage.jl
 
 using StaticArrays
-using ..QBMM: AbstractSourceTerm
+using ..QuadratureMoments: AbstractSourceTerm
 
 raw"""
     ParticleShrinkage{F, D} <: AbstractSourceTerm

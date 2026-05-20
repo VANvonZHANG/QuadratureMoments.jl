@@ -1,4 +1,4 @@
-# QBMM.jl/src/Math/hankel.jl
+# src/Math/hankel.jl
 
 using LinearAlgebra
 using StaticArrays

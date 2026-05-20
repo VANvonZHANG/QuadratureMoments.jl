@@ -1,5 +1,5 @@
 # examples/03_multivariate_inversion.jl
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using Printf
 

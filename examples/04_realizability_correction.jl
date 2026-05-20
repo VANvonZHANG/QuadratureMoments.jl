@@ -1,5 +1,5 @@
 # examples/04_realizability_correction.jl
-using QBMM
+using QuadratureMoments
 using StaticArrays
 
 println("=== Module 2: Robustness and Error Handling ===")

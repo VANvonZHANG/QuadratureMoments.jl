@@ -1,8 +1,8 @@
-# QBMM.jl/src/Solvers/Evolution/dqmom.jl
+# src/Solvers/Evolution/dqmom.jl
 
 using LinearAlgebra
 using StaticArrays
-using ..QBMM: AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
+using ..QuadratureMoments: AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
 
 raw"""
     DQMOM{N} <: AbstractQBMM{1, N}

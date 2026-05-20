@@ -1,5 +1,5 @@
 # examples/02_eqmom.jl
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using Printf
 

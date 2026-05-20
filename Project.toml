@@ -1,4 +1,4 @@
-name = "QBMM"
+name = "QuadratureMoments"
 uuid = "67ad929c-df03-4828-9f1c-8a7f138edff4"
 authors = ["Fan Zhang"]
 version = "0.1.0"

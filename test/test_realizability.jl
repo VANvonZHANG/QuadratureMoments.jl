@@ -1,5 +1,5 @@
 using Test
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using LinearAlgebra
 

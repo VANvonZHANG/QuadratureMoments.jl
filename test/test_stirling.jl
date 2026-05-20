@@ -1,6 +1,6 @@
-# QBMM.jl/test/test_stirling.jl
+# test/test_stirling.jl
 using Test
-using QBMM
+using QuadratureMoments
 using StaticArrays
 
 @testset "Stirling Numbers Math Backend" begin
@@ -30,7 +30,7 @@ using StaticArrays
         # Using local immutable objects
         val_n = Val(5)
         val_k = Val(3)
-        res = QBMM._stirling2_static(val_n, val_k)
+        res = QuadratureMoments._stirling2_static(val_n, val_k)
         return res
     end
 

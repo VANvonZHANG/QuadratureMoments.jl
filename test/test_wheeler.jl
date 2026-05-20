@@ -1,5 +1,5 @@
 # QBMM.jl Core Test Suite
-using QBMM
+using QuadratureMoments
 using Test
 using LinearAlgebra
 using StaticArrays

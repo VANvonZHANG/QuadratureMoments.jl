@@ -1,6 +1,6 @@
-# QBMM.jl/test/test_dqmom_forwarddiff.jl
+# test/test_dqmom_forwarddiff.jl
 using Test
-using QBMM
+using QuadratureMoments
 using StaticArrays
 using ForwardDiff
 using LinearAlgebra
