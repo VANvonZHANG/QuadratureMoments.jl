@@ -19,3 +19,6 @@ Thumbs.db
 deps/build.log
 docs/build/
 docs/site/
+
+# Superpowers
+docs/superpowers/
