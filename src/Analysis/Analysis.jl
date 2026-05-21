@@ -1,9 +1,6 @@
 module Analysis
 
 using ..QuadratureMoments
-using StaticArrays
-using LinearAlgebra
-using SpecialFunctions
 
 include("ndf_reconstruction.jl")
 include("moment_verification.jl")
