@@ -38,6 +38,14 @@ using StaticArrays
 using LinearAlgebra
 using Printf
 
+# Optional dependency for plotting
+const _PLOTS_AVAILABLE = try
+    using Plots
+    true
+catch
+    false
+end
+
 function main()
     # -----------------------------------------------------------------------
     # Problem parameters
@@ -185,6 +193,60 @@ function main()
     end
 
     println()
+
+    # -------------------------------------------------------------------
+    # Visualization
+    # -------------------------------------------------------------------
+
+    if _PLOTS_AVAILABLE
+        try
+            Plots.gr()
+
+        # Left panel: moment time evolution
+        t_dense = range(tspan[1], tspan[2], length=100)
+        m0_qmom = [sol(t)[1] for t in t_dense]
+        m1_qmom = [sol(t)[2] for t in t_dense]
+        m0_exact = [J * t for t in t_dense]
+        m1_exact = [J * V_nuc * t + J * G0 * t^2 / 2 for t in t_dense]
+
+        p1 = plot(t_dense, m0_qmom, label="m₀ QMOM", lw=2, color=:blue,
+                  xlabel="Time t", ylabel="Moment value", title="Moment Evolution")
+        plot!(t_dense, m0_exact, label="m₀ Exact", ls=:dash, color=:blue)
+        plot!(t_dense, m1_qmom, label="m₁ QMOM", lw=2, color=:green)
+        plot!(t_dense, m1_exact, label="m₁ Exact", ls=:dash, color=:green)
+
+        # Right panel: NDF reconstruction via EQMOM
+        ξ_range = range(0, 2, length=200)
+        n_snap = 5
+        t_snaps = range(tspan[1], tspan[2], length=n_snap+1)[2:end]
+        colors_snap = [:blue, :green, :orange, :red, :purple]
+
+        p2 = plot(title="NDF at Snapshots", xlabel="ξ (Volume)", ylabel="n(ξ)")
+        for (idx, t_snap) in enumerate(t_snaps)
+            m_at_t = sol(t_snap)
+            m_snap = SVector{N_mom, Float64}(max(mi, 1e-30) for mi in m_at_t)
+            n_eq = (N_mom - 1) ÷ 2  # EQMOM needs 2*n_eq+1 <= N_mom
+            res_eq = invert_moments(EQMOM(n_eq, GaussianKernel()), m_snap)
+            σ = res_eq.sigmas[1]
+            ndf = zeros(length(ξ_range))
+            for (i, ξ) in enumerate(ξ_range)
+                for α in 1:length(res_eq.weights)
+                    ndf[i] += res_eq.weights[α] * exp(-(ξ - res_eq.nodes[α])^2 / (2σ^2)) / (σ * sqrt(2π))
+                end
+            end
+            plot!(p2, ξ_range, ndf, label="t=$(round(t_snap, digits=2))", lw=2,
+                  color=colors_snap[idx])
+        end
+
+        p = plot(p1, p2, layout=(1,2), size=(1000,400))
+        mkpath(joinpath(@__DIR__, "..", "output"))
+        savefig(p, joinpath(@__DIR__, "..", "output", "ch07_03_growth_nucleation.png"))
+        println("\n  Plot saved to output/ch07_03_growth_nucleation.png")
+    catch e
+        @show e
+        println("\n  (Install Plots.jl to generate plots)")
+    end
+    end
 
     # -----------------------------------------------------------------------
     # Verification

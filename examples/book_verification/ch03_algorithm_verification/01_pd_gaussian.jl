@@ -14,6 +14,7 @@
 using QuadratureMoments
 using StaticArrays
 using Printf
+using Plots
 
 function main()
     # -----------------------------------------------------------------------
@@ -122,6 +123,31 @@ function main()
     @printf("  Sum of weights: %.15f\n", w_sum)
     @printf("  |sum - 1| = %.2e  %s\n", w_norm_err, w_norm_ok ? "PASS" : "FAIL")
     println()
+
+    # -----------------------------------------------------------------------
+    # Visualization
+    # -----------------------------------------------------------------------
+    try
+        gr()
+
+        ξ_range = range(1.5, 8.5, length=200)
+        ndf_true = [exp(-(ξ - 5.0)^2 / 2) / sqrt(2π) for ξ in ξ_range]
+
+        p = plot(ξ_range, ndf_true, label="True NDF N(5,1)", lw=2, color=:blue,
+                 xlabel="ξ", ylabel="n(ξ)", title="Exercise 3.1: PD(4) Quadrature Nodes",
+                 legend=:topright)
+        vline!([5.0], color=:gray, ls=:dash, label="μ=5")
+        scatter!(nodes, zeros(length(nodes)), ms=8, color=:red, label="Nodes", markershape=:vline)
+        for i in eachindex(nodes)
+            plot!([nodes[i], nodes[i]], [0, weights[i] * 3], color=:red, lw=2, label=false)
+            scatter!([nodes[i]], [weights[i] * 3], color=:red, ms=6, label=false)
+        end
+        mkpath(joinpath(@__DIR__, "..", "output"))
+        savefig(p, joinpath(@__DIR__, "..", "output", "ch03_01_pd_gaussian.png"))
+        println("\n  Plot saved to output/ch03_01_pd_gaussian.png")
+    catch e
+        println("\n  (Plot generation failed: ", e, ")")
+    end
 
     # -----------------------------------------------------------------------
     # Final summary

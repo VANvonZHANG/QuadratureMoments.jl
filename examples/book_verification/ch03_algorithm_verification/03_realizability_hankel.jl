@@ -176,6 +176,51 @@ if !test2_pass
     all_pass = false
 end
 
+# --- Visualization ---
+try
+    using Plots
+    gr()
+
+    # Collect Hankel determinants for both moment sets
+    hankel_dets_real = [det_D03, det_D13]
+    hankel_dets_unreal = [det_D03_u, det_D13_u]
+
+    # Compute 2nd differences of ln(m_k) for both sets
+    function second_diffs(m)
+        ln_m = [log(x) for x in m]
+        d1 = [ln_m[k+1] - ln_m[k] for k in 1:(length(m)-1)]
+        d2 = [d1[k+1] - d1[k] for k in 1:(length(d1)-1)]
+        return d2
+    end
+    d2_real = second_diffs(m_real)
+    d2_unreal = second_diffs(m_unreal)
+
+    # Left panel: Hankel determinants
+    k_hankel = collect(0:length(hankel_dets_real)-1)
+    p1 = bar(k_hankel .- 0.15, hankel_dets_real, bar_width=0.3, label="Realizable",
+             color=:blue, xlabel="Determinant index", ylabel="Value",
+             title="Hankel Determinants")
+    bar!(k_hankel .+ 0.15, hankel_dets_unreal, bar_width=0.3, label="Corrupted", color=:red)
+    hline!([0], color=:gray, ls=:dash, label=false)
+
+    # Right panel: 2nd differences of ln(m_k)
+    k_diff = collect(0:length(d2_real)-1)
+    p2 = bar(k_diff .- 0.15, d2_real, bar_width=0.3, label="Realizable (d2>0)",
+             color=:blue, xlabel="Order k", ylabel="d2[ln(m_k)]",
+             title="ln(m_k) 2nd Differences")
+    bar!(k_diff .+ 0.15, d2_unreal, bar_width=0.3, label="Corrupted", color=:red)
+    hline!([0], color=:gray, ls=:dash, label=false)
+
+    p = plot(p1, p2, layout=(1,2), size=(900,400))
+    output_dir = joinpath(@__DIR__, "..", "output")
+    mkpath(output_dir)
+    savefig(p, joinpath(output_dir, "ch03_03_realizability.png"))
+    println("\n  Plot saved to output/ch03_03_realizability.png")
+catch e
+    @show e
+    println("\n  (Install Plots.jl to generate plots)")
+end
+
 # ============================================================
 # Summary
 # ============================================================

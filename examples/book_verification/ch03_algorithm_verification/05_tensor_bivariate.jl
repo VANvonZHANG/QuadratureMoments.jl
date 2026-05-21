@@ -63,6 +63,37 @@ for k in 1:4
 end
 println()
 
+# --- Visualization ---
+try
+    using Plots
+    gr()
+
+    # True bivariate NDF: n(xi1,xi2) = n_x(xi1) * n_y(xi2)
+    # where n_x = N(1, 0.1), n_y = N(2, 0.2)
+    mu_x, sigma_x = 1.0, 0.1
+    mu_y, sigma_y = 2.0, 0.2
+
+    xi1_range = range(0.5, 1.5, length=50)
+    xi2_range = range(1.3, 2.7, length=50)
+    ndf_2d = [exp(-(xi1 - mu_x)^2 / (2 * sigma_x^2)) / sqrt(2pi * sigma_x^2) *
+              exp(-(xi2 - mu_y)^2 / (2 * sigma_y^2)) / sqrt(2pi * sigma_y^2)
+              for xi2 in xi2_range, xi1 in xi1_range]
+
+    p = contour(xi1_range, xi2_range, ndf_2d, fill=false, color=:gray, lw=1,
+                xlabel="ξ₁", ylabel="ξ₂",
+                title="Ex 3.6: Tensor-Product QMOM (2,2)")
+    scatter!(res.nodes[:, 1], res.nodes[:, 2],
+             ms=res.weights .* 200, color=:red, label="Nodes",
+             markerstrokewidth=2)
+    mkpath(joinpath(@__DIR__, "..", "output"))
+    savefig(p, joinpath(@__DIR__, "..", "output", "ch03_05_tensor_bivariate.png"))
+    println("\n  Plot saved to output/ch03_05_tensor_bivariate.png")
+catch e
+    @show e
+    println("\n  (Install Plots.jl to generate plots)")
+end
+println()
+
 # --- Verification: reconstruct moments from quadrature and compare ---
 println("--- Moment reconstruction verification ---")
 let max_rel_err = 0.0, all_pass = true, tol = 1.0e-8

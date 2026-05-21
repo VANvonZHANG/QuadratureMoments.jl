@@ -22,3 +22,6 @@ docs/site/
 
 # Superpowers
 docs/superpowers/
+
+# Plot outputs
+examples/book_verification/output/*.png

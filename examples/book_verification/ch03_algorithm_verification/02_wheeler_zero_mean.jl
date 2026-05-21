@@ -167,6 +167,32 @@ println("--- Weight Normalization ---")
 println()
 
 # ---------------------------------------------------------------------------
+# Visualization: Wheeler(4) zero-mean NDF with PD failure annotation
+# ---------------------------------------------------------------------------
+
+try
+    using Plots
+    gr()
+
+    ξ_range = range(-4.0, 4.0, length=200)
+    ndf_true = [exp(-ξ^2 / 2) / sqrt(2π) for ξ in ξ_range]
+
+    p = plot(ξ_range, ndf_true, label="True NDF N(0,1)", lw=2, color=:blue,
+             xlabel="ξ", ylabel="n(ξ)", title="Exercise 3.2: Wheeler(4) — Zero Mean",
+             legend=:topright)
+    for i in eachindex(nodes)
+        plot!([nodes[i], nodes[i]], [0, weights[i] * 3], color=:red, lw=2, label=(i==1 ? "Weights (×3)" : false))
+        scatter!([nodes[i]], [weights[i] * 3], color=:red, ms=6, label=false)
+    end
+    annotate!(-3.2, 0.35, text("PD fails (m₁=0)", 10, :left, :darkred))
+    mkpath(joinpath(@__DIR__, "..", "output"))
+    savefig(p, joinpath(@__DIR__, "..", "output", "ch03_02_wheeler_zero_mean.png"))
+    println("\n  Plot saved to output/ch03_02_wheeler_zero_mean.png")
+catch
+    println("\n  (Install Plots.jl to generate plots)")
+end
+
+# ---------------------------------------------------------------------------
 # Final summary
 # ---------------------------------------------------------------------------
 

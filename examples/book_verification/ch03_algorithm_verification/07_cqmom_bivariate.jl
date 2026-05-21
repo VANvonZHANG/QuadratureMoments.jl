@@ -127,6 +127,46 @@ end
 println()
 
 # ---------------------------------------------------------------------------
+# 3b. Visualization: CQMOM 4-point vs 9-point comparison
+# ---------------------------------------------------------------------------
+try
+    using Plots
+    gr()
+
+    # Distribution parameters (from section 1 above)
+    μ_x, σ_x = 1.0, 0.1
+    μ_y, σ_y = 2.0, 0.2
+
+    # True bivariate NDF contours
+    ξ1_range = range(μ_x - 3σ_x, μ_x + 3σ_x, length=50)
+    ξ2_range = range(μ_y - 3σ_y, μ_y + 3σ_y, length=50)
+    ndf_2d = [exp(-(ξ1 - μ_x)^2 / (2 * σ_x^2)) / sqrt(2π * σ_x^2) *
+              exp(-(ξ2 - μ_y)^2 / (2 * σ_y^2)) / sqrt(2π * σ_y^2)
+              for ξ2 in ξ2_range, ξ1 in ξ1_range]
+
+    p1 = contour(ξ1_range, ξ2_range, ndf_2d, fill=false, color=:gray, lw=1,
+                 title="CQMOM N=(2,2): 4 nodes", xlabel="ξ₁", ylabel="ξ₂")
+    scatter!(p1, res4.nodes[:, 1], res4.nodes[:, 2],
+             ms=res4.weights .* 300, color=:red, label="Nodes", markerstrokewidth=2)
+
+    p2 = contour(ξ1_range, ξ2_range, ndf_2d, fill=false, color=:gray, lw=1,
+                 title="CQMOM N=(3,3): 9 nodes", xlabel="ξ₁", ylabel="ξ₂",
+                 ylims=(μ_y - 3σ_y, μ_y + 3σ_y))
+    # Filter out near-zero-weight outlier nodes for display
+    mask9 = res9.weights .> 1e-6
+    scatter!(p2, res9.nodes[mask9, 1], res9.nodes[mask9, 2],
+             ms=res9.weights[mask9] .* 300, color=:red, label="Nodes", markerstrokewidth=2)
+
+    p = plot(p1, p2, layout=(1, 2), size=(900, 400))
+    mkpath(joinpath(@__DIR__, "..", "output"))
+    savefig(p, joinpath(@__DIR__, "..", "output", "ch03_07_cqmom_bivariate.png"))
+    println("\n  Plot saved to output/ch03_07_cqmom_bivariate.png")
+catch e
+    @show e
+    println("\n  (Install Plots.jl to generate plots)")
+end
+
+# ---------------------------------------------------------------------------
 # 4. Summary
 # ---------------------------------------------------------------------------
 println("=" ^ 60)
