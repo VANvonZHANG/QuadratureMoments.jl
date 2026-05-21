@@ -33,6 +33,7 @@ catch
 end
 
 using QuadratureMoments
+using QuadratureMoments.Analysis
 using StaticArrays
 using LinearAlgebra
 using Printf
@@ -44,6 +45,8 @@ const _PLOTS_AVAILABLE = try
 catch
     false
 end
+
+include(joinpath(@__DIR__, "..", "utils", "book_reporting.jl"))
 
 # -----------------------------------------------------------------------
 # Parameters
@@ -155,44 +158,8 @@ function main()
     # Print comparison table
     # -------------------------------------------------------------------
 
-    println("=== Moment Comparison: QMOM vs Analytical ===")
-    println()
-
-    @printf("%-6s  |  %-30s  |  %-30s\n",
-        "t", "m_0 (QMOM / Exact / Err)", "m_1 (QMOM / Exact / Err)")
-    println(repeat("-", 74))
-
-    max_m0_err = 0.0
-    max_m1_err = 0.0
-
-    for t in t_out
-        m_num = sol(t)
-        m0_num = m_num[1]
-        m1_num = m_num[2]
-
-        (m0_ex, m1_ex) = analytical_moments(t)
-
-        err_m0 = abs(m0_num - m0_ex)
-        err_m1 = abs(m1_num - m1_ex)
-
-        max_m0_err = max(max_m0_err, err_m0)
-        max_m1_err = max(max_m1_err, err_m1)
-
-        @printf("%-6.2f  |  %8.6f / %8.6f / %.2e  |  %8.6f / %8.6f / %.2e\n",
-            t,
-            m0_num, m0_ex, err_m0,
-            m1_num, m1_ex, err_m1)
-    end
-    println()
-
-    # -------------------------------------------------------------------
-    # Max absolute errors
-    # -------------------------------------------------------------------
-
-    println("=== Maximum Absolute Errors ===")
-    @printf("  max |m_0_err| = %.2e\n", max_m0_err)
-    @printf("  max |m_1_err| = %.2e\n", max_m1_err)
-    println()
+    mc = compare_moments(t_out, t -> sol(t)[1:2], t -> collect(analytical_moments(t)); n_moments = 2)
+    print_comparison_table(mc, ["m₀", "m₁"])
 
     # -------------------------------------------------------------------
     # Visualization
@@ -202,77 +169,51 @@ function main()
         try
             Plots.gr()
 
-        # Left panel: moment time evolution
-        t_dense = range(0, t_final, length=100)
-        m0_qmom = [sol(t)[1] for t in t_dense]
-        m1_qmom = [sol(t)[2] for t in t_dense]
-        m0_exact = [analytical_moments(t)[1] for t in t_dense]
-        m1_exact = [analytical_moments(t)[2] for t in t_dense]
+            # Build dense time arrays for plotting
+            t_dense = range(tspan[1], tspan[2], length = 100)
 
-        p1 = plot(t_dense, m0_qmom, label="m₀ QMOM", lw=2, color=:blue,
-                  xlabel="Time t", ylabel="Moment value", title="Moment Evolution")
-        plot!(t_dense, m0_exact, label="m₀ Exact", ls=:dash, color=:blue)
-        plot!(t_dense, m1_qmom, label="m₁ QMOM", lw=2, color=:green)
-        plot!(t_dense, m1_exact, label="m₁ Exact", ls=:dash, color=:green)
-
-        # Right panel: NDF reconstruction via EQMOM
-        ξ_range = range(0, 4, length=200)
-        snapshot_times = [0.0, 0.5, 1.0, 1.5, 2.0]
-        colors_snap = [:blue, :green, :orange, :red, :purple]
-
-        p2 = plot(title="NDF at Snapshots", xlabel="ξ (Volume)", ylabel="n(ξ)")
-        for (idx, t_snap) in enumerate(snapshot_times)
-            m_at_t = sol(t_snap)
-            m_snap = SVector{n_moments, Float64}(max(mi, 1e-30) for mi in m_at_t)
-            n_eq = (n_moments - 1) ÷ 2   # EQMOM needs 2N+1 moments; for n_moments=6 → N=2
-            res_eq = invert_moments(EQMOM(n_eq, GaussianKernel()), m_snap)
-            σ = res_eq.sigmas[1]
-            ndf = zeros(length(ξ_range))
-            for (i, ξ) in enumerate(ξ_range)
-                for α in 1:length(res_eq.weights)
-                    ndf[i] += res_eq.weights[α] * exp(-(ξ - res_eq.nodes[α])^2 / (2σ^2)) / (σ * sqrt(2π))
-                end
+            # Build moment matrices
+            n_mom_plot = 2
+            m_num = Matrix{Float64}(undef, length(t_dense), n_mom_plot)
+            m_ref = Matrix{Float64}(undef, length(t_dense), n_mom_plot)
+            for (i, t) in enumerate(t_dense)
+                m_num[i, :] .= sol(t)[1:n_mom_plot]
+                m_ref[i, :] .= collect(analytical_moments(t))[1:n_mom_plot]
             end
-            plot!(p2, ξ_range, ndf, label="t=$t_snap", lw=2, color=colors_snap[idx])
-        end
 
-        p = plot(p1, p2, layout=(1,2), size=(1000,400))
-        mkpath(joinpath(@__DIR__, "..", "output"))
-        savefig(p, joinpath(@__DIR__, "..", "output", "ch07_02_breakage.png"))
-        println("\n  Plot saved to output/ch07_02_breakage.png")
+            # NDF reconstruction at snapshot times
+            ξ_range = range(0, 4, length = 200)
+            snapshot_times = [0.0, 0.5, 1.0, 1.5, 2.0]
+            ndfs = Vector{Float64}[]
+            for t_snap in snapshot_times
+                m_at_t = sol(t_snap)
+                m_snap = SVector{n_moments, Float64}(max(mi, 1e-30) for mi in m_at_t)
+                n_eq = (n_moments - 1) ÷ 2
+                res_eq = invert_moments(EQMOM(n_eq, GaussianKernel()), m_snap)
+                ndf = reconstruct_ndf(res_eq, ξ_range, GaussianKernel())
+                push!(ndfs, ndf)
+            end
+
+            # Plot
+            p = plot_pbe_summary(t_dense, m_num, ξ_range, ndfs, snapshot_times; exact = m_ref)
+            mkpath(joinpath(@__DIR__, "..", "output"))
+            savefig(p, output_path("ch07_02_breakage.png"))
+            println("\n  Plot saved to output/ch07_02_breakage.png")
         catch e
             @show e
             println("\n  (Plot generation failed)")
         end
     else
-        println("  (Plots.jl not available; skipping visualization)")
+        println("\n  (Install Plots.jl to generate plots)")
     end
 
     # -------------------------------------------------------------------
     # Pass/fail criteria
     # -------------------------------------------------------------------
 
-    pass_m0 = max_m0_err < 1e-4
-    pass_m1 = max_m1_err < 1e-6
-
-    println("=== Verification ===")
-    @printf("  m_0 max abs err < 1e-4 : %s  (actual: %.2e)\n",
-        pass_m0 ? "PASS" : "FAIL", max_m0_err)
-    @printf("  m_1 max abs err < 1e-6 : %s  (actual: %.2e)\n",
-        pass_m1 ? "PASS" : "FAIL", max_m1_err)
-    println()
-
-    if pass_m0 && pass_m1
-        println("PASS")
-    else
-        println("FAIL")
-        if !pass_m0
-            println("  m_0 error exceeds tolerance")
-        end
-        if !pass_m1
-            println("  m_1 error exceeds tolerance")
-        end
-    end
+    max_errs = max_abs_errors(mc)
+    pass = verify(mc; atol = [1e-4, 1e-6])
+    print_verification_banner(pass, max_errs, [1e-4, 1e-6], ["m₀", "m₁"])
 end
 
 main()
