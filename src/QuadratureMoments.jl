@@ -63,7 +63,15 @@ include("Tools/realizability.jl")
 include("Tools/correction.jl")
 export is_realizable, mcgraw_correction
 
-# --- 8. Main API ---
+# --- 8. Analysis Tools ---
+include("Analysis/Analysis.jl")
+using .Analysis
+export Analysis
+export reconstruct_ndf, evaluate_kernel
+export MomentComparison, compare_moments, verify_reconstruction
+export abs_errors, rel_errors, max_abs_errors, max_rel_errors, verify
+
+# --- 9. Main API ---
 
 raw"""
     invert_moments(method::AbstractQBMM, moments; backend=NativeBackend()) -> QuadratureResult
