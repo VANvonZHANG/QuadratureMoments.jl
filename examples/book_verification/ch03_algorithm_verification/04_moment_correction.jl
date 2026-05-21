@@ -18,6 +18,7 @@
 # healthy moments -- are preserved.
 
 using QuadratureMoments
+using QuadratureMoments.Analysis
 using StaticArrays
 using Printf
 
@@ -143,39 +144,15 @@ try
     using Plots
     gr()
 
-    n = length(m_original)       # 8 moments (m0..m7)
-    k_labels = ["m$i" for i in 0:(n-1)]
+    p = plot_moment_comparison(
+        [Vector(m_original), Vector(m_ex34), Vector(m_ex34_corr),
+         Vector(m_ex35), Vector(m_ex35_corr)];
+        labels = ["Original", "Ex3.4 Corrupted", "Ex3.4 Corrected",
+                  "Ex3.5 Corrupted", "Ex3.5 Corrected"],
+        yscale = :log10,
+        title = "Moment Correction Comparison",
+    )
 
-    # Manually create grouped bars by offsetting x-positions
-    # 3 series: Original, Corrupted, Corrected
-    w = 0.25                     # bar width
-    x_orig = collect(1:n) .- w
-    x_corr = collect(1:n)
-    x_fix  = collect(1:n) .+ w
-
-    # --- Top panel: single corruption (Ex 3.4) ---
-    p1 = bar(x_orig, m_original,    bar_width=w, label="Original",
-             color=:steelblue, yaxis=:log10, ylims=(1e-1, 1e8))
-    bar!(p1, x_corr, m_ex34,       bar_width=w, label="Corrupted",
-         color=:tomato)
-    bar!(p1, x_fix,  m_ex34_corr,  bar_width=w, label="Corrected",
-         color=:seagreen)
-    plot!(p1, xlabel="Moment order", ylabel="Value",
-          title="Ex 3.4: Single Corruption Correction (m3)",
-          xticks=(1:n, k_labels), legend=:topleft)
-
-    # --- Bottom panel: multi corruption (Ex 3.5) ---
-    p2 = bar(x_orig, m_original,    bar_width=w, label="Original",
-             color=:steelblue, yaxis=:log10, ylims=(1e-1, 1e8))
-    bar!(p2, x_corr, m_ex35,       bar_width=w, label="Multi-Corrupted",
-         color=:tomato)
-    bar!(p2, x_fix,  m_ex35_corr,  bar_width=w, label="Multi-Corrected",
-         color=:seagreen)
-    plot!(p2, xlabel="Moment order", ylabel="Value",
-          title="Ex 3.5: Multi-Corruption Correction (m2, m3)",
-          xticks=(1:n, k_labels), legend=:topleft)
-
-    p = plot(p1, p2, layout=(2,1), size=(800,600))
     mkpath(joinpath(@__DIR__, "..", "output"))
     savefig(p, joinpath(@__DIR__, "..", "output", "ch03_04_moment_correction.png"))
     println("\n  Plot saved to output/ch03_04_moment_correction.png")
