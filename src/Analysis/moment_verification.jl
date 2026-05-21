@@ -8,6 +8,14 @@ Store the comparison between numerical and reference moments over time.
 - `numerical::Matrix{T}`: Numerical moments (rows = time, cols = moment order).
 - `reference::Matrix{T}`: Reference moments (rows = time, cols = moment order).
 """
+struct ReconstructionCheck{T}
+    order::Int
+    predicted::T
+    exact::T
+    rel_err::T
+    pass::Bool
+end
+
 struct MomentComparison{T}
     times::Vector{T}
     numerical::Matrix{T}
@@ -23,11 +31,13 @@ and return a [`MomentComparison`](@ref).
 Both functions must return vectors of length `n_moments`.
 """
 function compare_moments(
-    t_check::AbstractVector{T},
+    t_check::AbstractVector,
     numerical_fn,
     reference_fn;
     n_moments::Int,
-) where {T}
+)
+    t_check = float.(t_check)
+    T = eltype(t_check)
     isempty(t_check) && return MomentComparison(T[], Matrix{T}(undef, 0, n_moments), Matrix{T}(undef, 0, n_moments))
     n_t = length(t_check)
     sample_num = numerical_fn(first(t_check))
@@ -56,8 +66,8 @@ raw"""
     verify_reconstruction(res, moments; tol=1e-10)
 
 Check that the quadrature result `res` reproduces each moment in `moments`
-up to relative tolerance `tol`. Returns a vector of named tuples with
-fields `order`, `predicted`, `exact`, `rel_err`, and `pass`.
+up to relative tolerance `tol`. Returns a vector of [`ReconstructionCheck`](@ref)
+with fields `order`, `predicted`, `exact`, `rel_err`, and `pass`.
 """
 function verify_reconstruction(
     res::QuadratureResult,
@@ -68,19 +78,13 @@ function verify_reconstruction(
     weights = res.weights
     n = length(moments)
     T = promote_type(eltype(nodes), eltype(weights), eltype(moments))
-    results = Vector{Any}(undef, n)
+    results = Vector{ReconstructionCheck{T}}(undef, n)
 
     for k in 0:(n - 1)
         pred = sum(weights .* nodes .^ k)
         exact = moments[k + 1]
         rel_err = abs(pred - exact) / max(abs(exact), eps(T))
-        results[k + 1] = (
-            order = k,
-            predicted = pred,
-            exact = exact,
-            rel_err = rel_err,
-            pass = rel_err < tol,
-        )
+        results[k + 1] = ReconstructionCheck{T}(k, pred, exact, rel_err, rel_err < tol)
     end
     return results
 end
@@ -108,14 +112,20 @@ raw"""
 
 Return the maximum absolute error for each moment order across all times.
 """
-max_abs_errors(mc::MomentComparison) = vec(maximum(abs_errors(mc), dims = 1))
+function max_abs_errors(mc::MomentComparison)
+    isempty(mc.times) && return zeros(eltype(mc.times), size(mc.numerical, 2))
+    vec(maximum(abs_errors(mc), dims = 1))
+end
 
 raw"""
     max_rel_errors(mc::MomentComparison)
 
 Return the maximum relative error for each moment order across all times.
 """
-max_rel_errors(mc::MomentComparison) = vec(maximum(rel_errors(mc), dims = 1))
+function max_rel_errors(mc::MomentComparison)
+    isempty(mc.times) && return zeros(eltype(mc.times), size(mc.numerical, 2))
+    vec(maximum(rel_errors(mc), dims = 1))
+end
 
 raw"""
     verify(mc; atol, rtol=fill(Inf, length(atol)))
@@ -128,6 +138,7 @@ function verify(
     atol::AbstractVector{<:Real},
     rtol::AbstractVector{<:Real} = fill(Inf, length(atol)),
 )
+    isempty(mc.times) && return true
     ma = max_abs_errors(mc)
     mr = max_rel_errors(mc)
     all((ma[i] < atol[i]) || (mr[i] < rtol[i]) for i in eachindex(atol))

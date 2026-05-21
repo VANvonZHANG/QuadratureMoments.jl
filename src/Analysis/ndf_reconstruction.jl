@@ -22,10 +22,13 @@ raw"""
 Gamma kernel with shape ``\\alpha = (\\mu/\\sigma)^2`` and scale ``\\theta = \\sigma^2/\\mu``.
 """
 function evaluate_kernel(::GammaKernel, ξ::Real, node::Real, σ::Real)
+    ξ > 0 || return zero(promote_type(typeof(ξ), typeof(node), typeof(σ)))
     μ = node
     α = (μ / σ)^2
     θ = σ^2 / μ
-    ξ^(α - 1) * exp(-ξ / θ) / (θ^α * gamma(α))
+    # Use log-domain computation to avoid overflow
+    log_pdf = (α - 1) * log(ξ) - ξ / θ - α * log(θ) - loggamma(α)
+    exp(log_pdf)
 end
 
 raw"""
@@ -34,10 +37,13 @@ raw"""
 Beta kernel on ``[0,1]`` with parameters derived from mean `node` and variance `σ^2`.
 """
 function evaluate_kernel(::BetaKernel, ξ::Real, node::Real, σ::Real)
+    (0 < ξ < 1) || return zero(promote_type(typeof(ξ), typeof(node), typeof(σ)))
     μ = node
     ν = max(μ * (1 - μ) / σ^2 - 1, one(σ))
     α = μ * ν
     β = (1 - μ) * ν
+    # Guard against zero alpha or beta
+    α > 0 && β > 0 || return zero(promote_type(typeof(ξ), typeof(node), typeof(σ)))
     ξ^(α - 1) * (1 - ξ)^(β - 1) / beta(α, β)
 end
 
