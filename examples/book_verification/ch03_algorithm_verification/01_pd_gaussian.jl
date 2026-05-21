@@ -12,6 +12,7 @@
 #   Weights ~ {0.0459, 0.4541, 0.4541, 0.0459}
 
 using QuadratureMoments
+using QuadratureMoments.Analysis
 using StaticArrays
 using Printf
 using Plots
@@ -84,31 +85,22 @@ function main()
     # With N nodes the quadrature has degree of accuracy 2N-1 = 7.
     # Moments k=0..7 should be reconstructed exactly; m_8 should have error.
 
-    m8_exact = 991760.0  # exact 8th raw moment of N(5,1)
-
-    tol_moment = 1e-10
-    all_moments_pass = true
+    results = verify_reconstruction(res, Vector(m); tol = 1e-10)
+    all_moments_pass = all(r.pass for r in results[1:8])
 
     println("--- Moment Reconstruction (degree of accuracy = 2N-1 = 7) ---")
-    for k in 0:7
-        pred = sum(weights .* nodes .^ k)
-        rel_err = abs(pred - m[k+1]) / abs(m[k+1])
-        ok = rel_err < tol_moment
-        if !ok
-            all_moments_pass = false
-        end
+    for r in results[1:8]
         @printf("  m_%d: exact=%12.1f  quad=%12.1f  rel_err=%.2e  %s\n",
-            k, m[k+1], pred, rel_err, ok ? "PASS" : "FAIL")
+            r.order, r.exact, r.predicted, r.rel_err, r.pass ? "PASS" : "FAIL")
     end
 
-    # m_8: expect non-zero error since degree of accuracy is 7
-    k = 8
-    m8_pred = sum(weights .* nodes .^ k)
+    # m_8: expect non-zero error
+    m8_exact = 991760.0
+    m8_pred = sum(weights .* nodes .^ 8)
     m8_rel_err = abs(m8_pred - m8_exact) / abs(m8_exact)
-    m8_fail = m8_rel_err > tol_moment  # this SHOULD fail (nonzero error is expected)
+    m8_fail = m8_rel_err > 1e-10
     @printf("  m_%d: exact=%12.1f  quad=%12.1f  rel_err=%.2e  %s (expected nonzero)\n",
-        k, m8_exact, m8_pred, m8_rel_err,
-        m8_fail ? "PASS" : "FAIL")
+        8, m8_exact, m8_pred, m8_rel_err, m8_fail ? "PASS" : "FAIL")
     println()
 
     # -----------------------------------------------------------------------
@@ -129,19 +121,10 @@ function main()
     # -----------------------------------------------------------------------
     try
         gr()
-
-        ξ_range = range(1.5, 8.5, length=200)
-        ndf_true = [exp(-(ξ - 5.0)^2 / 2) / sqrt(2π) for ξ in ξ_range]
-
-        p = plot(ξ_range, ndf_true, label="True NDF N(5,1)", lw=2, color=:blue,
-                 xlabel="ξ", ylabel="n(ξ)", title="Exercise 3.1: PD(4) Quadrature Nodes",
-                 legend=:topright)
-        vline!([5.0], color=:gray, ls=:dash, label="μ=5")
-        scatter!(nodes, zeros(length(nodes)), ms=8, color=:red, label="Nodes", markershape=:vline)
-        for i in eachindex(nodes)
-            plot!([nodes[i], nodes[i]], [0, weights[i] * 3], color=:red, lw=2, label=false)
-            scatter!([nodes[i]], [weights[i] * 3], color=:red, ms=6, label=false)
-        end
+        ξ_range = range(1.5, 8.5, length = 200)
+        p = plot_quadrature_nodes(res;
+            true_pdf = ξ -> exp(-(ξ - 5.0)^2 / 2) / sqrt(2π),
+            ξ_range = ξ_range)
         mkpath(joinpath(@__DIR__, "..", "output"))
         savefig(p, joinpath(@__DIR__, "..", "output", "ch03_01_pd_gaussian.png"))
         println("\n  Plot saved to output/ch03_01_pd_gaussian.png")
