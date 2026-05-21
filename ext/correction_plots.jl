@@ -6,6 +6,13 @@ function plot_moment_comparison(
     title::String = "Moment Comparison",
 )
     n_sets = length(moment_sets)
+    n_sets > 0 || error("moment_sets cannot be empty")
+    if colors !== nothing && length(colors) < n_sets
+        error("colors vector length ($(length(colors))) < number of sets ($n_sets)")
+    end
+    if labels !== nothing && length(labels) < n_sets
+        error("labels vector length ($(length(labels))) < number of sets ($n_sets)")
+    end
     n_moments = length(moment_sets[1])
 
     for (i, ms) in enumerate(moment_sets)

@@ -7,6 +7,12 @@ function plot_moment_evolution(
     title::String = "Moment Evolution",
 )
     n_mom = size(moments, 2)
+    if colors !== nothing && length(colors) < n_mom
+        error("colors vector length ($(length(colors))) < number of moments ($n_mom)")
+    end
+    if labels !== nothing && length(labels) < n_mom
+        error("labels vector length ($(length(labels))) < number of moments ($n_mom)")
+    end
     p = plot(xlabel = "Time t", ylabel = "Moment value", title = title)
 
     default_colors = palette(:default)
@@ -28,6 +34,11 @@ function plot_ndf_snapshots(
     colors = nothing,
     title::String = "NDF at Snapshots",
 )
+    n_snaps = length(ndfs)
+    if colors !== nothing && length(colors) < n_snaps
+        error("colors vector length ($(length(colors))) < number of snapshots ($n_snaps)")
+    end
+
     p = plot(xlabel = "ξ (Volume)", ylabel = "n(ξ)", title = title)
     default_colors = palette(:default)
 
@@ -46,9 +57,12 @@ function plot_pbe_summary(
     snap_times::AbstractVector;
     exact::Union{Nothing,AbstractMatrix} = nothing,
     size::Tuple{Int,Int} = (1000, 400),
-    kwargs...,
+    colors = nothing,
+    labels = nothing,
+    title1::String = "Moment Evolution",
+    title2::String = "NDF at Snapshots",
 )
-    p1 = plot_moment_evolution(t_dense, moments; exact = exact, kwargs...)
-    p2 = plot_ndf_snapshots(ξ_range, ndfs, snap_times; kwargs...)
+    p1 = plot_moment_evolution(t_dense, moments; exact = exact, labels = labels, colors = colors, title = title1)
+    p2 = plot_ndf_snapshots(ξ_range, ndfs, snap_times; colors = colors, title = title2)
     plot(p1, p2, layout = (1, 2), size = size)
 end
