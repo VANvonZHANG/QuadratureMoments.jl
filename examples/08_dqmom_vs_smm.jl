@@ -26,8 +26,12 @@ physics = Aggregation((x, y) -> 1.0)
 method = Wheeler(N)
 
 println("Starting SMM (Standard Method of Moments) time integration...")
-println("SMM evolves the moment vector, then uses the Wheeler algorithm to invert at each time step.")
-println("This is very likely to crash at some step due to numerical truncation errors from rapid growth of high-order moments, making the data non-realizable.\n")
+println(
+    "SMM evolves the moment vector, then uses the Wheeler algorithm to invert at each time step.",
+)
+println(
+    "This is very likely to crash at some step due to numerical truncation errors from rapid growth of high-order moments, making the data non-realizable.\n",
+)
 
 dt = 0.05
 m_current = m0
@@ -38,7 +42,9 @@ for step in 1:20
         global m_current = m_current .+ dt .* dm
     catch e
         println("=> SMM crashed at step $step!\nError message: $e")
-        println("=> Cause: m can no longer satisfy the Stieltjes condition; realizability is lost.")
+        println(
+            "=> Cause: m can no longer satisfy the Stieltjes condition; realizability is lost.",
+        )
         global success_smm = false
         break
     end
@@ -48,7 +54,9 @@ if success_smm
 end
 
 println("\n---------------------------------------------------------")
-println("For comparison, with the same physics and step size, DQMOM directly evolves nodes and weights:\n")
+println(
+    "For comparison, with the same physics and step size, DQMOM directly evolves nodes and weights:\n",
+)
 u_current = vcat(w0, SVector{N}(w0 .* x0))
 dqmom_method = DQMOM(N)
 
@@ -70,5 +78,7 @@ end
 
 if success_dqmom
     println("=> DQMOM completed all 20 steps with extreme stability!")
-    println("=> Conclusion: Because DQMOM does not involve repeated nonlinear inversion from high-order moments to nodes, its robustness during time integration far exceeds that of SMM.")
+    println(
+        "=> Conclusion: Because DQMOM does not involve repeated nonlinear inversion from high-order moments to nodes, its robustness during time integration far exceeds that of SMM.",
+    )
 end

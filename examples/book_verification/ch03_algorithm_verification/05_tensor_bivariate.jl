@@ -35,14 +35,20 @@ m_data = zeros(4, 4)
 for i in 1:4, j in 1:4
     m_data[i, j] = mx[i] * my[j]
 end
-m_static = SMatrix{4, 4, Float64}(m_data)
+m_static = SMatrix{4,4,Float64}(m_data)
 
 println("Marginal moments of xi1 ~ N(1, 0.01): ", mx)
 println("Marginal moments of xi2 ~ N(2, 0.04): ", my)
 println()
 println("Input moment tensor (4 x 4):")
 for i in 1:4
-    @printf("  [%8.4f  %8.4f  %8.4f  %8.4f]\n", m_data[i, 1], m_data[i, 2], m_data[i, 3], m_data[i, 4])
+    @printf(
+        "  [%8.4f  %8.4f  %8.4f  %8.4f]\n",
+        m_data[i, 1],
+        m_data[i, 2],
+        m_data[i, 3],
+        m_data[i, 4]
+    )
 end
 println()
 
@@ -73,18 +79,33 @@ try
     mu_x, sigma_x = 1.0, 0.1
     mu_y, sigma_y = 2.0, 0.2
 
-    xi1_range = range(0.5, 1.5, length=50)
-    xi2_range = range(1.3, 2.7, length=50)
-    ndf_2d = [exp(-(xi1 - mu_x)^2 / (2 * sigma_x^2)) / sqrt(2pi * sigma_x^2) *
-              exp(-(xi2 - mu_y)^2 / (2 * sigma_y^2)) / sqrt(2pi * sigma_y^2)
-              for xi2 in xi2_range, xi1 in xi1_range]
+    xi1_range = range(0.5, 1.5; length=50)
+    xi2_range = range(1.3, 2.7; length=50)
+    ndf_2d = [
+        exp(-(xi1 - mu_x)^2 / (2 * sigma_x^2)) / sqrt(2pi * sigma_x^2) *
+        exp(-(xi2 - mu_y)^2 / (2 * sigma_y^2)) / sqrt(2pi * sigma_y^2) for
+        xi2 in xi2_range, xi1 in xi1_range
+    ]
 
-    p = contour(xi1_range, xi2_range, ndf_2d, fill=false, color=:gray, lw=1,
-                xlabel="ξ₁", ylabel="ξ₂",
-                title="Ex 3.6: Tensor-Product QMOM (2,2)")
-    scatter!(res.nodes[:, 1], res.nodes[:, 2],
-             ms=res.weights .* 200, color=:red, label="Nodes",
-             markerstrokewidth=2)
+    p = contour(
+        xi1_range,
+        xi2_range,
+        ndf_2d;
+        fill=false,
+        color=:gray,
+        lw=1,
+        xlabel="ξ₁",
+        ylabel="ξ₂",
+        title="Ex 3.6: Tensor-Product QMOM (2,2)",
+    )
+    scatter!(
+        res.nodes[:, 1],
+        res.nodes[:, 2];
+        ms=res.weights .* 200,
+        color=:red,
+        label="Nodes",
+        markerstrokewidth=2,
+    )
     mkpath(joinpath(@__DIR__, "..", "output"))
     savefig(p, joinpath(@__DIR__, "..", "output", "ch03_05_tensor_bivariate.png"))
     println("\n  Plot saved to output/ch03_05_tensor_bivariate.png")

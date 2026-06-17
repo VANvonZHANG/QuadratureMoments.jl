@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `Analysis` submodule with zero-dependency post-processing tools: `reconstruct_ndf` (NDF from EQMOM/ECQMOM results via Gaussian, Gamma, and Beta kernels), `MomentComparison` + `compare_moments`, `verify_reconstruction`, and error-metric accessors (`abs_errors`, `rel_errors`, `max_abs_errors`, `max_rel_errors`, `verify`)
+- `QuadratureMomentsPlotsExt` Package Extension: `plot_pbe_summary`, `plot_moment_evolution`, `plot_ndf_snapshots`, `plot_quadrature_nodes`, `plot_ndf_reconstruction`, `plot_moment_comparison` (activates automatically when users load Plots.jl)
+- Unit tests for the Analysis core and conditional tests for the Plots extension
+- Shared reporting utilities (`print_comparison_table`, `print_verification_banner`, `output_path`) for book verification examples
+
+### Changed
+
+- Moved `Plots` from a hard dependency to a weak dependency, declared via the `QuadratureMomentsPlotsExt` extension; users without Plots installed are unaffected
+- Added `SpecialFunctions` dependency for kernel PDF evaluation
+- Refactored five book verification examples (Ch07 ×3, Ch03 ×2) to use the new Analysis API, eliminating ~200 lines of duplicated plotting/post-processing code
+
 ## [0.1.0] - 2026-05-20
 
 ### Added

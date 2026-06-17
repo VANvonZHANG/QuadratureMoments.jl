@@ -40,17 +40,16 @@ The system is defined as \$A \mathbf{x} = \mathbf{S}\$, where
 # Returns
 - The coefficient matrix \$A\$.
 raw"""
-@inline dqmom_matrix(nodes::AbstractVector, backend::AbstractMathBackend=NativeBackend()) = _dqmom_matrix_dispatch(
-    nodes, backend
-)
+@inline dqmom_matrix(nodes::AbstractVector, backend::AbstractMathBackend=NativeBackend()) =
+    _dqmom_matrix_dispatch(nodes, backend)
 
 function _dqmom_matrix_dispatch(nodes::SVector{N,T}, backend::NativeBackend) where {N,T}
-    _dqmom_matrix_native(nodes, Val(N))
+    return _dqmom_matrix_native(nodes, Val(N))
 end
 function _dqmom_matrix_dispatch(
     nodes::AbstractVector{T}, backend::ExternalBackend
 ) where {T}
-    _dqmom_matrix_external(nodes)
+    return _dqmom_matrix_external(nodes)
 end
 
 function _dqmom_matrix_native(nodes::SVector{N,T}, ::Val{N}) where {N,T}

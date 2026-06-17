@@ -63,31 +63,41 @@ println("=" ^ 60)
 println("Case (a): CQMOM with N = (2, 2)  =>  4 quadrature nodes")
 println("=" ^ 60)
 
-m_4 = SMatrix{4, 4, Float64}(m_data[1:4, 1:4])
+m_4 = SMatrix{4,4,Float64}(m_data[1:4, 1:4])
 res4 = invert_moments(CQMOM((2, 2)), m_4)
 
 K4 = length(res4.weights)
 println("\nQuadrature nodes and weights:")
 for k in 1:K4
-    @printf("  Node %d: (xi1 = %12.6f, xi2 = %12.6f),  weight = %12.6f\n",
-        k, res4.nodes[k, 1], res4.nodes[k, 2], res4.weights[k])
+    @printf(
+        "  Node %d: (xi1 = %12.6f, xi2 = %12.6f),  weight = %12.6f\n",
+        k,
+        res4.nodes[k, 1],
+        res4.nodes[k, 2],
+        res4.weights[k]
+    )
 end
 
 # Verification: reconstruct moments up to order (1,1) from the quadrature
 println("\nMoment reconstruction verification (up to order 1 in each dim):")
 all_pass4 = true
 for i in 0:1, j in 0:1
-    pred = sum(
-        res4.weights[k] * res4.nodes[k, 1]^i * res4.nodes[k, 2]^j for k in 1:K4
-    )
+    pred = sum(res4.weights[k] * res4.nodes[k, 1]^i * res4.nodes[k, 2]^j for k in 1:K4)
     exact = m_data[i + 1, j + 1]
     rel_err = abs(pred - exact) / max(abs(exact), 1e-15)
     status = rel_err < 1e-8 ? "PASS" : "FAIL"
     if status == "FAIL"
         global all_pass4 = false
     end
-    @printf("  m(%d,%d): predicted = %12.6f, exact = %12.6f, rel_err = %8.2e  [%s]\n",
-        i, j, pred, exact, rel_err, status)
+    @printf(
+        "  m(%d,%d): predicted = %12.6f, exact = %12.6f, rel_err = %8.2e  [%s]\n",
+        i,
+        j,
+        pred,
+        exact,
+        rel_err,
+        status
+    )
 end
 println()
 
@@ -98,31 +108,41 @@ println("=" ^ 60)
 println("Case (b): CQMOM with N = (3, 3)  =>  9 quadrature nodes")
 println("=" ^ 60)
 
-m_6 = SMatrix{6, 6, Float64}(m_data)
+m_6 = SMatrix{6,6,Float64}(m_data)
 res9 = invert_moments(CQMOM((3, 3)), m_6)
 
 K9 = length(res9.weights)
 println("\nQuadrature nodes and weights:")
 for k in 1:K9
-    @printf("  Node %d: (xi1 = %12.6f, xi2 = %12.6f),  weight = %12.6f\n",
-        k, res9.nodes[k, 1], res9.nodes[k, 2], res9.weights[k])
+    @printf(
+        "  Node %d: (xi1 = %12.6f, xi2 = %12.6f),  weight = %12.6f\n",
+        k,
+        res9.nodes[k, 1],
+        res9.nodes[k, 2],
+        res9.weights[k]
+    )
 end
 
 # Verification: reconstruct moments up to order (2,2) from the quadrature
 println("\nMoment reconstruction verification (up to order 2 in each dim):")
 all_pass9 = true
 for i in 0:2, j in 0:2
-    pred = sum(
-        res9.weights[k] * res9.nodes[k, 1]^i * res9.nodes[k, 2]^j for k in 1:K9
-    )
+    pred = sum(res9.weights[k] * res9.nodes[k, 1]^i * res9.nodes[k, 2]^j for k in 1:K9)
     exact = m_data[i + 1, j + 1]
     rel_err = abs(pred - exact) / max(abs(exact), 1e-15)
     status = rel_err < 1e-8 ? "PASS" : "FAIL"
     if status == "FAIL"
         global all_pass9 = false
     end
-    @printf("  m(%d,%d): predicted = %12.6f, exact = %12.6f, rel_err = %8.2e  [%s]\n",
-        i, j, pred, exact, rel_err, status)
+    @printf(
+        "  m(%d,%d): predicted = %12.6f, exact = %12.6f, rel_err = %8.2e  [%s]\n",
+        i,
+        j,
+        pred,
+        exact,
+        rel_err,
+        status
+    )
 end
 println()
 
@@ -138,26 +158,60 @@ try
     μ_y, σ_y = 2.0, 0.2
 
     # True bivariate NDF contours
-    ξ1_range = range(μ_x - 3σ_x, μ_x + 3σ_x, length=50)
-    ξ2_range = range(μ_y - 3σ_y, μ_y + 3σ_y, length=50)
-    ndf_2d = [exp(-(ξ1 - μ_x)^2 / (2 * σ_x^2)) / sqrt(2π * σ_x^2) *
-              exp(-(ξ2 - μ_y)^2 / (2 * σ_y^2)) / sqrt(2π * σ_y^2)
-              for ξ2 in ξ2_range, ξ1 in ξ1_range]
+    ξ1_range = range(μ_x - 3σ_x, μ_x + 3σ_x; length=50)
+    ξ2_range = range(μ_y - 3σ_y, μ_y + 3σ_y; length=50)
+    ndf_2d = [
+        exp(-(ξ1 - μ_x)^2 / (2 * σ_x^2)) / sqrt(2π * σ_x^2) *
+        exp(-(ξ2 - μ_y)^2 / (2 * σ_y^2)) / sqrt(2π * σ_y^2) for
+        ξ2 in ξ2_range, ξ1 in ξ1_range
+    ]
 
-    p1 = contour(ξ1_range, ξ2_range, ndf_2d, fill=false, color=:gray, lw=1,
-                 title="CQMOM N=(2,2): 4 nodes", xlabel="ξ₁", ylabel="ξ₂")
-    scatter!(p1, res4.nodes[:, 1], res4.nodes[:, 2],
-             ms=res4.weights .* 300, color=:red, label="Nodes", markerstrokewidth=2)
+    p1 = contour(
+        ξ1_range,
+        ξ2_range,
+        ndf_2d;
+        fill=false,
+        color=:gray,
+        lw=1,
+        title="CQMOM N=(2,2): 4 nodes",
+        xlabel="ξ₁",
+        ylabel="ξ₂",
+    )
+    scatter!(
+        p1,
+        res4.nodes[:, 1],
+        res4.nodes[:, 2];
+        ms=res4.weights .* 300,
+        color=:red,
+        label="Nodes",
+        markerstrokewidth=2,
+    )
 
-    p2 = contour(ξ1_range, ξ2_range, ndf_2d, fill=false, color=:gray, lw=1,
-                 title="CQMOM N=(3,3): 9 nodes", xlabel="ξ₁", ylabel="ξ₂",
-                 ylims=(μ_y - 3σ_y, μ_y + 3σ_y))
+    p2 = contour(
+        ξ1_range,
+        ξ2_range,
+        ndf_2d;
+        fill=false,
+        color=:gray,
+        lw=1,
+        title="CQMOM N=(3,3): 9 nodes",
+        xlabel="ξ₁",
+        ylabel="ξ₂",
+        ylims=(μ_y - 3σ_y, μ_y + 3σ_y),
+    )
     # Filter out near-zero-weight outlier nodes for display
     mask9 = res9.weights .> 1e-6
-    scatter!(p2, res9.nodes[mask9, 1], res9.nodes[mask9, 2],
-             ms=res9.weights[mask9] .* 300, color=:red, label="Nodes", markerstrokewidth=2)
+    scatter!(
+        p2,
+        res9.nodes[mask9, 1],
+        res9.nodes[mask9, 2];
+        ms=res9.weights[mask9] .* 300,
+        color=:red,
+        label="Nodes",
+        markerstrokewidth=2,
+    )
 
-    p = plot(p1, p2, layout=(1, 2), size=(900, 400))
+    p = plot(p1, p2; layout=(1, 2), size=(900, 400))
     mkpath(joinpath(@__DIR__, "..", "output"))
     savefig(p, joinpath(@__DIR__, "..", "output", "ch03_07_cqmom_bivariate.png"))
     println("\n  Plot saved to output/ch03_07_cqmom_bivariate.png")

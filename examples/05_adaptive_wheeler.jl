@@ -17,18 +17,17 @@ println("Degenerate moment sequence (theoretically only supports N=2):")
 println(m_degenerate)
 println()
 
-println("Attempting Wheeler inversion with N=4 (adaptive framework should safely reduce it to N=2)...")
+println(
+    "Attempting Wheeler inversion with N=4 (adaptive framework should safely reduce it to N=2)...",
+)
 
 method_w = Wheeler(4)
 res = invert_moments(method_w, m_degenerate)
 
 println("\n--- Results after order reduction ---")
 for i in 1:4
-    @printf(
-        "Node %d: %8.4f, Weight: %8.4f\n",
-        i,
-        res.nodes[i],
-        res.weights[i]
-    )
+    @printf("Node %d: %8.4f, Weight: %8.4f\n", i, res.nodes[i], res.weights[i])
 end
-println("\nAs can be seen, the extra two node weights were safely set to 0.0 without triggering a division-by-zero crash.")
+println(
+    "\nAs can be seen, the extra two node weights were safely set to 0.0 without triggering a division-by-zero crash.",
+)

@@ -16,4 +16,7 @@ using QuadratureMoments
     include("test_dqmom_forwarddiff.jl")
     include("test_correction.jl")
     include("test_source_terms.jl")
+    include("Analysis/test_ndf_reconstruction.jl")
+    include("Analysis/test_moment_verification.jl")
+    include("Analysis/test_plots_ext.jl")
 end

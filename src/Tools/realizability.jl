@@ -1,7 +1,8 @@
 # src/Tools/realizability.jl
 using LinearAlgebra
 using StaticArrays
-using ..QuadratureMoments: AbstractMathBackend, NativeBackend, ExternalBackend, hankel_matrix
+using ..QuadratureMoments:
+    AbstractMathBackend, NativeBackend, ExternalBackend, hankel_matrix
 
 raw"""
     is_realizable(m::AbstractVector; domain=:pos, backend=NativeBackend()) -> Bool

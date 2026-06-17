@@ -38,7 +38,9 @@ t_end = 2.0
 steps = Int(t_end / dt)
 
 println("Initial nodes: ", x0)
-println("Pure growth model G=0.5; theoretically all nodes should increase by 1.0 at t=2.0\n")
+println(
+    "Pure growth model G=0.5; theoretically all nodes should increase by 1.0 at t=2.0\n"
+)
 
 for i in 1:steps
     # RK4 step
@@ -55,4 +57,6 @@ x_final = u[(N + 1):2N] ./ max.(w_final, 1e-12)
 println("Results after integrating to t=2.0:")
 println("Weights: ", w_final)
 println("Nodes: ", x_final)
-println("As can be seen, the weights remain unchanged and each node shifted right by approximately 1.0. This perfectly matches the analytical solution!")
+println(
+    "As can be seen, the weights remain unchanged and each node shifted right by approximately 1.0. This perfectly matches the analytical solution!",
+)
