@@ -76,7 +76,7 @@ println()
 # Compare with book values
 # ---------------------------------------------------------------------------
 
-book_nodes   = [-2.3344, -0.7420, 0.7420, 2.3344]
+book_nodes = [-2.3344, -0.7420, 0.7420, 2.3344]
 book_weights = [0.0459, 0.4541, 0.4541, 0.0459]
 
 println("--- Comparison with Book Values (Exercise 3.2) ---")
@@ -91,11 +91,17 @@ for i in 1:N
     end
     @printf(
         "  Node %d: computed=%10.4f  book=%10.4f  %s\n",
-        i, nodes[i], book_nodes[i], n_ok ? "PASS" : "FAIL"
+        i,
+        nodes[i],
+        book_nodes[i],
+        n_ok ? "PASS" : "FAIL"
     )
     @printf(
         "  Wt   %d: computed=%10.4f  book=%10.4f  %s\n",
-        i, weights[i], book_weights[i], w_ok ? "PASS" : "FAIL"
+        i,
+        weights[i],
+        book_weights[i],
+        w_ok ? "PASS" : "FAIL"
     )
 end
 println()
@@ -119,7 +125,10 @@ for i in 1:div(N, 2)
     end
     @printf(
         "  Pair (%d,%d): node_sum=%.2e  wt_diff=%.2e  %s\n",
-        i, j, abs(nodes[i] + nodes[j]), abs(weights[i] - weights[j]),
+        i,
+        j,
+        abs(nodes[i] + nodes[j]),
+        abs(weights[i] - weights[j]),
         (node_sym_ok && wt_sym_ok) ? "PASS" : "FAIL"
     )
 end
@@ -137,7 +146,7 @@ all_moments_pass = true
 println("--- Moment Reconstruction (degree of accuracy = 2N-1 = 7) ---")
 for k in 0:7
     pred = sum(weights .* nodes .^ k)
-    exact_val = m[k+1]
+    exact_val = m[k + 1]
     if abs(exact_val) > tol_moment
         rel_err = abs(pred - exact_val) / abs(exact_val)
     else
@@ -148,8 +157,14 @@ for k in 0:7
     if !ok
         global all_moments_pass = false
     end
-    @printf("  m_%d: exact=%12.1f  quad=%12.6f  err=%.2e  %s\n",
-        k, exact_val, pred, rel_err, ok ? "PASS" : "FAIL")
+    @printf(
+        "  m_%d: exact=%12.1f  quad=%12.6f  err=%.2e  %s\n",
+        k,
+        exact_val,
+        pred,
+        rel_err,
+        ok ? "PASS" : "FAIL"
+    )
 end
 println()
 
@@ -174,15 +189,29 @@ try
     using Plots
     gr()
 
-    ξ_range = range(-4.0, 4.0, length=200)
+    ξ_range = range(-4.0, 4.0; length=200)
     ndf_true = [exp(-ξ^2 / 2) / sqrt(2π) for ξ in ξ_range]
 
-    p = plot(ξ_range, ndf_true, label="True NDF N(0,1)", lw=2, color=:blue,
-             xlabel="ξ", ylabel="n(ξ)", title="Exercise 3.2: Wheeler(4) — Zero Mean",
-             legend=:topright)
+    p = plot(
+        ξ_range,
+        ndf_true;
+        label="True NDF N(0,1)",
+        lw=2,
+        color=:blue,
+        xlabel="ξ",
+        ylabel="n(ξ)",
+        title="Exercise 3.2: Wheeler(4) — Zero Mean",
+        legend=:topright,
+    )
     for i in eachindex(nodes)
-        plot!([nodes[i], nodes[i]], [0, weights[i] * 3], color=:red, lw=2, label=(i==1 ? "Weights (×3)" : false))
-        scatter!([nodes[i]], [weights[i] * 3], color=:red, ms=6, label=false)
+        plot!(
+            [nodes[i], nodes[i]],
+            [0, weights[i] * 3];
+            color=:red,
+            lw=2,
+            label=(i==1 ? "Weights (×3)" : false),
+        )
+        scatter!([nodes[i]], [weights[i] * 3]; color=:red, ms=6, label=false)
     end
     annotate!(-3.2, 0.35, text("PD fails (m₁=0)", 10, :left, :darkred))
     mkpath(joinpath(@__DIR__, "..", "output"))

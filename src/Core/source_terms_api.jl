@@ -22,7 +22,9 @@ raw"""
 function compute_source_terms(
     source::AbstractSourceTerm, nodes::SVector{N,T}, weights::SVector{N,T}, ::Val{L}
 ) where {N,T,L}
-    error("`compute_source_terms` is not implemented for source type: $(typeof(source))")
+    return error(
+        "`compute_source_terms` is not implemented for source type: $(typeof(source))"
+    )
 end
 
 # --- Composite Pattern for Stacking Physics ---
@@ -40,13 +42,13 @@ end
 # Overload the `+` operator to allow easy stacking of physical processes
 Base.:+(s1::AbstractSourceTerm, s2::AbstractSourceTerm) = CompositeSourceTerm((s1, s2))
 function Base.:+(c::CompositeSourceTerm, s::AbstractSourceTerm)
-    CompositeSourceTerm((c.sources..., s))
+    return CompositeSourceTerm((c.sources..., s))
 end
 function Base.:+(s::AbstractSourceTerm, c::CompositeSourceTerm)
-    CompositeSourceTerm((s, c.sources...))
+    return CompositeSourceTerm((s, c.sources...))
 end
 function Base.:+(c1::CompositeSourceTerm, c2::CompositeSourceTerm)
-    CompositeSourceTerm((c1.sources..., c2.sources...))
+    return CompositeSourceTerm((c1.sources..., c2.sources...))
 end
 
 raw"""

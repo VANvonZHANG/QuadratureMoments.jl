@@ -49,7 +49,7 @@ if _PLOTS_AVAILABLE
 
         @testset "plot_moment_comparison" begin
             sets = [[1.0, 2.0, 3.0], [1.1, 1.9, 3.2], [1.0, 2.0, 3.0]]
-            p = plot_moment_comparison(sets; labels = ["A", "B", "C"])
+            p = plot_moment_comparison(sets; labels=["A", "B", "C"])
             @test p isa Plots.Plot
         end
     end

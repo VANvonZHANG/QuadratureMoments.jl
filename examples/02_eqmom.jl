@@ -18,16 +18,10 @@ res_eq = invert_moments(method_eq, m_extended)
 
 println("--- EQMOM (Gaussian Kernel, N=2) results ---")
 for i in 1:2
-    @printf(
-        "Node (mean) %d: %8.4f, Weight: %8.4f\n",
-        i,
-        res_eq.nodes[i],
-        res_eq.weights[i]
-    )
+    @printf("Node (mean) %d: %8.4f, Weight: %8.4f\n", i, res_eq.nodes[i], res_eq.weights[i])
 end
-@printf(
-    "Global bandwidth parameter sigma: %8.4f\n",
-    res_eq.sigmas[1]
-)
+@printf("Global bandwidth parameter sigma: %8.4f\n", res_eq.sigmas[1])
 println()
-println("Compared with standard QMOM (where all probability mass is concentrated at discrete nodes), EQMOM provides an approximation of a smooth distribution with nonzero sigma.")
+println(
+    "Compared with standard QMOM (where all probability mass is concentrated at discrete nodes), EQMOM provides an approximation of a smooth distribution with nonzero sigma.",
+)

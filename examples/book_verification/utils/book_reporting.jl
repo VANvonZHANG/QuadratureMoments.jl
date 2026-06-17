@@ -28,7 +28,7 @@ function print_comparison_table(mc::MomentComparison, moment_names::Vector{Strin
         end
         @printf("%-6.2f  |  %s\n", t, join(parts, "  |  "))
     end
-    println()
+    return println()
 end
 
 """
@@ -40,14 +40,19 @@ function print_verification_banner(
     passed::Bool,
     max_errors::Vector{<:Real},
     tolerances::Vector{<:Real},
-    moment_names::Vector{String} = ["m_$i" for i in eachindex(max_errors)],
+    moment_names::Vector{String}=["m_$i" for i in eachindex(max_errors)],
 )
     println("=== Verification ===")
     for (i, (err, tol)) in enumerate(zip(max_errors, tolerances))
         name = moment_names[i]
         pass_i = err < tol
-        @printf("  %s max err < %.0e : %s  (actual: %.2e)\n",
-            name, tol, pass_i ? "PASS" : "FAIL", err)
+        @printf(
+            "  %s max err < %.0e : %s  (actual: %.2e)\n",
+            name,
+            tol,
+            pass_i ? "PASS" : "FAIL",
+            err
+        )
     end
     println()
 
@@ -58,12 +63,11 @@ function print_verification_banner(
         println("  FAIL")
         for (i, (err, tol)) in enumerate(zip(max_errors, tolerances))
             if err >= tol
-                @printf("  - %s: max_err = %.2e >= tol = %.0e\n",
-                    moment_names[i], err, tol)
+                @printf("  - %s: max_err = %.2e >= tol = %.0e\n", moment_names[i], err, tol)
             end
         end
     end
-    println("========================================")
+    return println("========================================")
 end
 
 """

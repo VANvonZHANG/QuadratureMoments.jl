@@ -31,14 +31,13 @@ and return a [`MomentComparison`](@ref).
 Both functions must return vectors of length `n_moments`.
 """
 function compare_moments(
-    t_check::AbstractVector,
-    numerical_fn,
-    reference_fn;
-    n_moments::Int,
+    t_check::AbstractVector, numerical_fn, reference_fn; n_moments::Int
 )
     t_check = float.(t_check)
     T = eltype(t_check)
-    isempty(t_check) && return MomentComparison(T[], Matrix{T}(undef, 0, n_moments), Matrix{T}(undef, 0, n_moments))
+    isempty(t_check) && return MomentComparison(
+        T[], Matrix{T}(undef, 0, n_moments), Matrix{T}(undef, 0, n_moments)
+    )
     n_t = length(t_check)
     sample_num = numerical_fn(first(t_check))
     sample_ref = reference_fn(first(t_check))
@@ -49,12 +48,16 @@ function compare_moments(
     for (i, t) in enumerate(t_check)
         num = numerical_fn(t)
         ref = reference_fn(t)
-        length(num) == n_moments || throw(DimensionMismatch(
-            "numerical_fn returned $(length(num)) moments, expected $n_moments"
-        ))
-        length(ref) == n_moments || throw(DimensionMismatch(
-            "reference_fn returned $(length(ref)) moments, expected $n_moments"
-        ))
+        length(num) == n_moments || throw(
+            DimensionMismatch(
+                "numerical_fn returned $(length(num)) moments, expected $n_moments"
+            ),
+        )
+        length(ref) == n_moments || throw(
+            DimensionMismatch(
+                "reference_fn returned $(length(ref)) moments, expected $n_moments"
+            ),
+        )
         numerical[i, :] .= num
         reference[i, :] .= ref
     end
@@ -70,9 +73,7 @@ up to relative tolerance `tol`. Returns a vector of [`ReconstructionCheck`](@ref
 with fields `order`, `predicted`, `exact`, `rel_err`, and `pass`.
 """
 function verify_reconstruction(
-    res::QuadratureResult,
-    moments::AbstractVector{<:Real};
-    tol::Real = 1e-10,
+    res::QuadratureResult, moments::AbstractVector{<:Real}; tol::Real=1e-10
 )
     nodes = vec(res.nodes)
     weights = res.weights
@@ -104,7 +105,7 @@ Return the element-wise relative error using [`abs_errors`](@ref).
 function rel_errors(mc::MomentComparison{T}) where {T}
     err = abs_errors(mc)
     ref = mc.reference
-    err ./ max.(abs.(ref), eps(T))
+    return err ./ max.(abs.(ref), eps(T))
 end
 
 raw"""
@@ -114,7 +115,7 @@ Return the maximum absolute error for each moment order across all times.
 """
 function max_abs_errors(mc::MomentComparison)
     isempty(mc.times) && return zeros(eltype(mc.times), size(mc.numerical, 2))
-    vec(maximum(abs_errors(mc), dims = 1))
+    return vec(maximum(abs_errors(mc); dims=1))
 end
 
 raw"""
@@ -124,7 +125,7 @@ Return the maximum relative error for each moment order across all times.
 """
 function max_rel_errors(mc::MomentComparison)
     isempty(mc.times) && return zeros(eltype(mc.times), size(mc.numerical, 2))
-    vec(maximum(rel_errors(mc), dims = 1))
+    return vec(maximum(rel_errors(mc); dims=1))
 end
 
 raw"""
@@ -136,10 +137,10 @@ Returns `true` if all moments pass.
 function verify(
     mc::MomentComparison;
     atol::AbstractVector{<:Real},
-    rtol::AbstractVector{<:Real} = fill(Inf, length(atol)),
+    rtol::AbstractVector{<:Real}=fill(Inf, length(atol)),
 )
     isempty(mc.times) && return true
     ma = max_abs_errors(mc)
     mr = max_rel_errors(mc)
-    all((ma[i] < atol[i]) || (mr[i] < rtol[i]) for i in eachindex(atol))
+    return all((ma[i] < atol[i]) || (mr[i] < rtol[i]) for i in eachindex(atol))
 end

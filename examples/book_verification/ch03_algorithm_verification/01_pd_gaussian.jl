@@ -55,7 +55,7 @@ function main()
     # Compare with book values
     # -----------------------------------------------------------------------
 
-    book_nodes  = [2.6656, 4.2580, 5.7420, 7.3344]
+    book_nodes = [2.6656, 4.2580, 5.7420, 7.3344]
     book_weights = [0.0459, 0.4541, 0.4541, 0.0459]
 
     println("--- Comparison with Book Values (Eq. 3.18) ---")
@@ -70,11 +70,17 @@ function main()
         end
         @printf(
             "  Node %d: computed=%10.4f  book=%10.4f  %s\n",
-            i, nodes[i], book_nodes[i], n_ok ? "PASS" : "FAIL"
+            i,
+            nodes[i],
+            book_nodes[i],
+            n_ok ? "PASS" : "FAIL"
         )
         @printf(
             "  Wt   %d: computed=%10.4f  book=%10.4f  %s\n",
-            i, weights[i], book_weights[i], w_ok ? "PASS" : "FAIL"
+            i,
+            weights[i],
+            book_weights[i],
+            w_ok ? "PASS" : "FAIL"
         )
     end
     println()
@@ -85,13 +91,19 @@ function main()
     # With N nodes the quadrature has degree of accuracy 2N-1 = 7.
     # Moments k=0..7 should be reconstructed exactly; m_8 should have error.
 
-    results = verify_reconstruction(res, Vector(m); tol = 1e-10)
+    results = verify_reconstruction(res, Vector(m); tol=1e-10)
     all_moments_pass = all(r.pass for r in results[1:8])
 
     println("--- Moment Reconstruction (degree of accuracy = 2N-1 = 7) ---")
     for r in results[1:8]
-        @printf("  m_%d: exact=%12.1f  quad=%12.1f  rel_err=%.2e  %s\n",
-            r.order, r.exact, r.predicted, r.rel_err, r.pass ? "PASS" : "FAIL")
+        @printf(
+            "  m_%d: exact=%12.1f  quad=%12.1f  rel_err=%.2e  %s\n",
+            r.order,
+            r.exact,
+            r.predicted,
+            r.rel_err,
+            r.pass ? "PASS" : "FAIL"
+        )
     end
 
     # m_8: expect non-zero error
@@ -99,8 +111,14 @@ function main()
     m8_pred = sum(weights .* nodes .^ 8)
     m8_rel_err = abs(m8_pred - m8_exact) / abs(m8_exact)
     m8_fail = m8_rel_err > 1e-10
-    @printf("  m_%d: exact=%12.1f  quad=%12.1f  rel_err=%.2e  %s (expected nonzero)\n",
-        8, m8_exact, m8_pred, m8_rel_err, m8_fail ? "PASS" : "FAIL")
+    @printf(
+        "  m_%d: exact=%12.1f  quad=%12.1f  rel_err=%.2e  %s (expected nonzero)\n",
+        8,
+        m8_exact,
+        m8_pred,
+        m8_rel_err,
+        m8_fail ? "PASS" : "FAIL"
+    )
     println()
 
     # -----------------------------------------------------------------------
@@ -121,10 +139,10 @@ function main()
     # -----------------------------------------------------------------------
     try
         gr()
-        ξ_range = range(1.5, 8.5, length = 200)
-        p = plot_quadrature_nodes(res;
-            true_pdf = ξ -> exp(-(ξ - 5.0)^2 / 2) / sqrt(2π),
-            ξ_range = ξ_range)
+        ξ_range = range(1.5, 8.5; length=200)
+        p = plot_quadrature_nodes(
+            res; true_pdf=ξ -> exp(-(ξ - 5.0)^2 / 2) / sqrt(2π), ξ_range=ξ_range
+        )
         mkpath(joinpath(@__DIR__, "..", "output"))
         savefig(p, joinpath(@__DIR__, "..", "output", "ch03_01_pd_gaussian.png"))
         println("\n  Plot saved to output/ch03_01_pd_gaussian.png")
@@ -153,7 +171,7 @@ function main()
             println("  - Weight normalization: FAILED")
         end
     end
-    println("========================================")
+    return println("========================================")
 end
 
 main()

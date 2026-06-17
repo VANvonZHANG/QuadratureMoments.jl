@@ -124,8 +124,14 @@ tol = 1.0
 D03_ok = abs(det_D03 - 12.0) < tol
 D13_ok = abs(det_D13 - 5736.0) < tol
 
-@printf("  Delta_{0,3} == 12   ? %s (diff = %.6f)\n", D03_ok ? "YES" : "NO", abs(det_D03 - 12.0))
-@printf("  Delta_{1,3} == 5736 ? %s (diff = %.6f)\n", D13_ok ? "YES" : "NO", abs(det_D13 - 5736.0))
+@printf(
+    "  Delta_{0,3} == 12   ? %s (diff = %.6f)\n", D03_ok ? "YES" : "NO", abs(det_D03 - 12.0)
+)
+@printf(
+    "  Delta_{1,3} == 5736 ? %s (diff = %.6f)\n",
+    D13_ok ? "YES" : "NO",
+    abs(det_D13 - 5736.0)
+)
 
 # Use the library function
 result1 = is_realizable(m_realizable)
@@ -188,30 +194,44 @@ try
     # Compute 2nd differences of ln(m_k) for both sets
     function second_diffs(m)
         ln_m = [log(x) for x in m]
-        d1 = [ln_m[k+1] - ln_m[k] for k in 1:(length(m)-1)]
-        d2 = [d1[k+1] - d1[k] for k in 1:(length(d1)-1)]
+        d1 = [ln_m[k + 1] - ln_m[k] for k in 1:(length(m) - 1)]
+        d2 = [d1[k + 1] - d1[k] for k in 1:(length(d1) - 1)]
         return d2
     end
     d2_real = second_diffs(m_real)
     d2_unreal = second_diffs(m_unreal)
 
     # Left panel: Hankel determinants
-    k_hankel = collect(0:length(hankel_dets_real)-1)
-    p1 = bar(k_hankel .- 0.15, hankel_dets_real, bar_width=0.3, label="Realizable",
-             color=:blue, xlabel="Determinant index", ylabel="Value",
-             title="Hankel Determinants")
-    bar!(k_hankel .+ 0.15, hankel_dets_unreal, bar_width=0.3, label="Corrupted", color=:red)
-    hline!([0], color=:gray, ls=:dash, label=false)
+    k_hankel = collect(0:(length(hankel_dets_real) - 1))
+    p1 = bar(
+        k_hankel .- 0.15,
+        hankel_dets_real;
+        bar_width=0.3,
+        label="Realizable",
+        color=:blue,
+        xlabel="Determinant index",
+        ylabel="Value",
+        title="Hankel Determinants",
+    )
+    bar!(k_hankel .+ 0.15, hankel_dets_unreal; bar_width=0.3, label="Corrupted", color=:red)
+    hline!([0]; color=:gray, ls=:dash, label=false)
 
     # Right panel: 2nd differences of ln(m_k)
-    k_diff = collect(0:length(d2_real)-1)
-    p2 = bar(k_diff .- 0.15, d2_real, bar_width=0.3, label="Realizable (d2>0)",
-             color=:blue, xlabel="Order k", ylabel="d2[ln(m_k)]",
-             title="ln(m_k) 2nd Differences")
-    bar!(k_diff .+ 0.15, d2_unreal, bar_width=0.3, label="Corrupted", color=:red)
-    hline!([0], color=:gray, ls=:dash, label=false)
+    k_diff = collect(0:(length(d2_real) - 1))
+    p2 = bar(
+        k_diff .- 0.15,
+        d2_real;
+        bar_width=0.3,
+        label="Realizable (d2>0)",
+        color=:blue,
+        xlabel="Order k",
+        ylabel="d2[ln(m_k)]",
+        title="ln(m_k) 2nd Differences",
+    )
+    bar!(k_diff .+ 0.15, d2_unreal; bar_width=0.3, label="Corrupted", color=:red)
+    hline!([0]; color=:gray, ls=:dash, label=false)
 
-    p = plot(p1, p2, layout=(1,2), size=(900,400))
+    p = plot(p1, p2; layout=(1, 2), size=(900, 400))
     output_dir = joinpath(@__DIR__, "..", "output")
     mkpath(output_dir)
     savefig(p, joinpath(output_dir, "ch03_03_realizability.png"))

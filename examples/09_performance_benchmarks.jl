@@ -22,4 +22,6 @@ end
 
 run_benchmark(method, m)
 
-println("\nThis demonstrates the library's 'Zero-Allocation' design, perfectly supporting the strong-coupling requirements of tens-of-millions-of-cell CFD grids!")
+println(
+    "\nThis demonstrates the library's 'Zero-Allocation' design, perfectly supporting the strong-coupling requirements of tens-of-millions-of-cell CFD grids!",
+)

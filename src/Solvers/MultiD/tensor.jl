@@ -49,7 +49,7 @@ function invert_moments(
     # Extract marginal moments for each dimension
     marginal_m = ntuple(Val(D)) do d
         Ld = 2 * N_tuple[d]
-        ntuple(k -> m[ntuple(i -> (i == d ? k : 1), Val(D))...], Val(Ld))
+        return ntuple(k -> m[ntuple(i -> (i == d ? k : 1), Val(D))...], Val(Ld))
     end
 
     marginal_m_vecs = ntuple(d -> SVector{length(marginal_m[d]),T}(marginal_m[d]), Val(D))
@@ -65,7 +65,7 @@ function invert_moments(
     # 1. Independent 1D inversions
     res_1d = ntuple(Val(D)) do d
         N_d = N_tuple[d]
-        invert_moments(Wheeler{N_d}(), marginal_m[d]; backend=backend)
+        return invert_moments(Wheeler{N_d}(), marginal_m[d]; backend=backend)
     end
 
     # 2. Cartesian product combination

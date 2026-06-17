@@ -52,5 +52,8 @@ try
         )
     end
 catch e
-    println("BruteQMOM solve failed (common in non-convex optimization, highlighting the importance of CQMOM): ", e)
+    println(
+        "BruteQMOM solve failed (common in non-convex optimization, highlighting the importance of CQMOM): ",
+        e,
+    )
 end

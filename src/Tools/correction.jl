@@ -2,7 +2,8 @@
 
 using LinearAlgebra
 using StaticArrays
-using ..QuadratureMoments: AbstractMathBackend, NativeBackend, ExternalBackend, is_realizable
+using ..QuadratureMoments:
+    AbstractMathBackend, NativeBackend, ExternalBackend, is_realizable
 
 raw"""
     mcgraw_correction(m::AbstractVector; max_iter=20, backend=NativeBackend()) -> corrected_m

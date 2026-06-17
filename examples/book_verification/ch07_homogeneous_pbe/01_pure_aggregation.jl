@@ -50,10 +50,10 @@ include(joinpath(@__DIR__, "..", "utils", "book_reporting.jl"))
 # Parameters
 # -----------------------------------------------------------------------
 
-const beta_0    = 1.0      # constant aggregation kernel coefficient
-const N_quad    = 4        # number of quadrature nodes
+const beta_0 = 1.0      # constant aggregation kernel coefficient
+const N_quad = 4        # number of quadrature nodes
 const n_moments = 6        # moments tracked: m_0 through m_5
-const t_final   = 2.0      # end time
+const t_final = 2.0      # end time
 
 # -----------------------------------------------------------------------
 # Analytical solution
@@ -74,17 +74,17 @@ end
 #   S_k = 0.5 * sum_i sum_j w_i*w_j * beta_0 * [(xi_i+xi_j)^k - xi_i^k - xi_j^k]
 # This is the standard form: birth - death.
 
-function aggregation_source(m::MVector{n_moments, Float64}) where {}
+function aggregation_source(m::MVector{n_moments,Float64}) where {}
     # Clamp moments to prevent negative values from ODE solver drift
-    m_safe = MVector{n_moments, Float64}(max(mi, 1e-30) for mi in m)
+    m_safe = MVector{n_moments,Float64}(max(mi, 1e-30) for mi in m)
 
     # Invert moments to obtain quadrature
-    res = invert_moments(Wheeler(N_quad), SVector{n_moments, Float64}(m_safe))
+    res = invert_moments(Wheeler(N_quad), SVector{n_moments,Float64}(m_safe))
     nodes = vec(res.nodes)    # SVector{N_quad, Float64}
     weights = res.weights     # SVector{N_quad, Float64}
 
     # Compute source terms: birth - death for each moment order k = 0..n_moments-1
-    S = MVector{n_moments, Float64}(zeros(n_moments))
+    S = MVector{n_moments,Float64}(zeros(n_moments))
     for k in 0:(n_moments - 1)
         val = 0.0
         for i in 1:N_quad
@@ -109,7 +109,7 @@ end
 # ODE right-hand side
 # -----------------------------------------------------------------------
 
-function ode_rhs(m::MVector{n_moments, Float64}, p, t)
+function ode_rhs(m::MVector{n_moments,Float64}, p, t)
     return aggregation_source(m)
 end
 
@@ -132,7 +132,7 @@ function main()
     # m_k(0) = 1.0^k = 1.0 for all k
     # -------------------------------------------------------------------
 
-    m0_init = MVector{n_moments, Float64}(ones(n_moments))
+    m0_init = MVector{n_moments,Float64}(ones(n_moments))
 
     println("Initial moments (monodisperse at V=1.0):")
     for k in 0:(n_moments - 1)
@@ -146,7 +146,7 @@ function main()
 
     tspan = (0.0, t_final)
     prob = ODEProblem(ode_rhs, m0_init, tspan)
-    sol = solve(prob, Tsit5(); reltol = 1e-10, abstol = 1e-12)
+    sol = solve(prob, Tsit5(); reltol=1e-10, abstol=1e-12)
 
     # Extract solution at desired output times
     t_out = [0.0, 0.5, 1.0, 1.5, 2.0]
@@ -155,7 +155,9 @@ function main()
     # Print comparison table
     # -------------------------------------------------------------------
 
-    mc = compare_moments(t_out, t -> sol(t)[1:3], t -> collect(analytical_moments(t)); n_moments = 3)
+    mc = compare_moments(
+        t_out, t -> sol(t)[1:3], t -> collect(analytical_moments(t)); n_moments=3
+    )
     print_comparison_table(mc, ["m₀", "m₁", "m₂"])
 
     # -------------------------------------------------------------------
@@ -167,7 +169,7 @@ function main()
             Plots.gr()
 
             # Build dense time arrays for plotting
-            t_dense = range(tspan[1], tspan[2], length = 100)
+            t_dense = range(tspan[1], tspan[2]; length=100)
 
             # Build moment matrices
             n_mom_plot = 3
@@ -179,12 +181,12 @@ function main()
             end
 
             # NDF reconstruction at snapshot times
-            ξ_range = range(0.5, 3.5, length = 200)
+            ξ_range = range(0.5, 3.5; length=200)
             snapshot_times = [0.0, 0.5, 1.0, 1.5, 2.0]
             ndfs = Vector{Float64}[]
             for t_snap in snapshot_times
                 m_at_t = sol(t_snap)
-                m_snap = SVector{n_moments, Float64}(max(mi, 1e-30) for mi in m_at_t)
+                m_snap = SVector{n_moments,Float64}(max(mi, 1e-30) for mi in m_at_t)
                 n_eq = (n_moments - 1) ÷ 2
                 res_eq = invert_moments(EQMOM(n_eq, GaussianKernel()), m_snap)
                 ndf = reconstruct_ndf(res_eq, ξ_range, GaussianKernel())
@@ -192,7 +194,7 @@ function main()
             end
 
             # Plot
-            p = plot_pbe_summary(t_dense, m_num, ξ_range, ndfs, snapshot_times; exact = m_ref)
+            p = plot_pbe_summary(t_dense, m_num, ξ_range, ndfs, snapshot_times; exact=m_ref)
             mkpath(joinpath(@__DIR__, "..", "output"))
             savefig(p, output_path("ch07_01_aggregation.png"))
             println("\n  Plot saved to output/ch07_01_aggregation.png")
@@ -209,8 +211,8 @@ function main()
     # -------------------------------------------------------------------
 
     max_errs = max_rel_errors(mc)
-    pass = verify(mc; atol = [1e-4, 1e-6, Inf])
-    print_verification_banner(pass, max_errs, [1e-4, 1e-6, Inf], ["m₀", "m₁", "m₂"])
+    pass = verify(mc; atol=[1e-4, 1e-6, Inf])
+    return print_verification_banner(pass, max_errs, [1e-4, 1e-6, Inf], ["m₀", "m₁", "m₂"])
 end
 
 main()

@@ -6,12 +6,14 @@ using Test
 @testset "NDF Reconstruction" begin
     @testset "Gaussian kernel evaluation" begin
         # Standard normal at mean
-        @test isapprox(evaluate_kernel(GaussianKernel(), 0.0, 0.0, 1.0), 1.0 / sqrt(2π), atol = 1e-10)
+        @test isapprox(
+            evaluate_kernel(GaussianKernel(), 0.0, 0.0, 1.0), 1.0 / sqrt(2π), atol=1e-10
+        )
         # Integral should be ~1
-        xs = range(-5.0, 5.0, length = 1000)
+        xs = range(-5.0, 5.0, length=1000)
         dx = step(xs)
         integral = sum(evaluate_kernel(GaussianKernel(), x, 0.0, 1.0) for x in xs) * dx
-        @test isapprox(integral, 1.0, atol = 1e-3)
+        @test isapprox(integral, 1.0, atol=1e-3)
     end
 
     @testset "reconstruct_ndf with EQMOM Gaussian" begin
@@ -20,7 +22,7 @@ using Test
         res = invert_moments(EQMOM(2, GaussianKernel()), m)
         @test res.sigmas !== nothing
 
-        ξ_range = range(0.0, 10.0, length = 200)
+        ξ_range = range(0.0, 10.0, length=200)
         ndf = reconstruct_ndf(res, ξ_range, GaussianKernel())
 
         # NDF should be non-negative
@@ -29,11 +31,11 @@ using Test
         # Integral should approximate m₀ = 1.0
         dξ = step(ξ_range)
         integral = sum(ndf) * dξ
-        @test isapprox(integral, 1.0, atol = 0.05)
+        @test isapprox(integral, 1.0, atol=0.05)
 
         # Mean should approximate m₁/m₀ = 5.0
         mean_val = sum(ξ_range .* ndf) * dξ / integral
-        @test isapprox(mean_val, 5.0, atol = 0.1)
+        @test isapprox(mean_val, 5.0, atol=0.1)
     end
 
     @testset "reconstruct_ndf without sigmas throws" begin

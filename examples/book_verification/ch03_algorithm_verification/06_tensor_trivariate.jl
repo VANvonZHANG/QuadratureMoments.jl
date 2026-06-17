@@ -61,7 +61,7 @@ end
 println()
 
 # Convert to a StaticArray for the solver
-m_static = SArray{Tuple{4, 4, 4}, Float64, 3, 64}(m_data)
+m_static = SArray{Tuple{4,4,4},Float64,3,64}(m_data)
 
 # --- Perform tensor-product QMOM inversion ---
 method = TensorQMOM((2, 2, 2))
@@ -103,10 +103,8 @@ all_pass, max_rel_err, n_checked = let res = res, m_data = m_data
         end
         exact = m_data[i + 1, j + 1, k + 1]
         pred = sum(
-            res.weights[n] *
-            res.nodes[n, 1]^i *
-            res.nodes[n, 2]^j *
-            res.nodes[n, 3]^k for n in 1:length(res.weights)
+            res.weights[n] * res.nodes[n, 1]^i * res.nodes[n, 2]^j * res.nodes[n, 3]^k
+            for n in 1:length(res.weights)
         )
         rel_err = abs(pred - exact) / (abs(exact) + 1e-30)
         _max_rel_err = max(_max_rel_err, rel_err)

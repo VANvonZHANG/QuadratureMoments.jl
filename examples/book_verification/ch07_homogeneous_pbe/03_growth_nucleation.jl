@@ -29,7 +29,9 @@
 try
     using OrdinaryDiffEq
 catch
-    println("OrdinaryDiffEq is required. Install with: using Pkg; Pkg.add(\"OrdinaryDiffEq\")")
+    println(
+        "OrdinaryDiffEq is required. Install with: using Pkg; Pkg.add(\"OrdinaryDiffEq\")"
+    )
     exit(1)
 end
 
@@ -54,18 +56,18 @@ function main()
     # Problem parameters
     # -----------------------------------------------------------------------
 
-    G0     = 0.5     # constant growth rate
-    J      = 1.0     # constant nucleation rate
-    V_nuc  = 0.1     # nucleation size
+    G0 = 0.5     # constant growth rate
+    J = 1.0     # constant nucleation rate
+    V_nuc = 0.1     # nucleation size
     N_quad = 4       # number of quadrature nodes (needs 2*N_quad = 8 moments)
-    N_mom  = 8       # number of moments tracked (m0..m7)
-    tspan  = (0.01, 3.0)  # start at t=0.01 to avoid degenerate quadrature
+    N_mom = 8       # number of moments tracked (m0..m7)
+    tspan = (0.01, 3.0)  # start at t=0.01 to avoid degenerate quadrature
 
     # Near-empty initial condition (avoid exactly zero for quadrature)
     # Use a small monodisperse distribution at V ~ 0.1 (near nucleation size)
     # to ensure realizability: m_k = m0 * V_mean^k
     V_init = 0.1
-    m0_init = MVector{8, Float64}(undef)
+    m0_init = MVector{8,Float64}(undef)
     for k in 0:7
         m0_init[k + 1] = 0.01 * V_init^k
     end
@@ -95,21 +97,21 @@ function main()
     # -----------------------------------------------------------------------
 
     function rhs!(dm, m, p, t)
-        G0_val  = p[1]
-        J_val   = p[2]
-        Vnuc    = p[3]
-        Nq      = p[4]
-        Nm      = p[5]
+        G0_val = p[1]
+        J_val = p[2]
+        Vnuc = p[3]
+        Nq = p[4]
+        Nm = p[5]
 
         # Clamp moments to avoid negative/zero values before inversion
-        m_safe = MVector{8, Float64}(undef)
+        m_safe = MVector{8,Float64}(undef)
         for i in 1:8
             m_safe[i] = max(m[i], 1e-30)
         end
 
         # Correct moments to ensure realizability
-        m_corr = mcgraw_correction(SVector{8, Float64}(m_safe))
-        m_safe = MVector{8, Float64}(m_corr)
+        m_corr = mcgraw_correction(SVector{8,Float64}(m_safe))
+        m_safe = MVector{8,Float64}(m_corr)
 
         # Moment inversion: recover quadrature nodes and weights
         res = invert_moments(Wheeler(Nq), m_safe)
@@ -144,7 +146,7 @@ function main()
 
     println("Solving ODE with Tsit5() ...")
     prob = ODEProblem(rhs!, m0_init, tspan, params)
-    sol = solve(prob, Tsit5(); reltol = 1e-10, abstol = 1e-12, dense = true)
+    sol = solve(prob, Tsit5(); reltol=1e-10, abstol=1e-12, dense=true)
     println("  Status: ", sol.retcode)
     println()
 
@@ -167,7 +169,7 @@ function main()
 
     t_check = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
 
-    mc = compare_moments(t_check, t -> sol(t)[1:2], analytical_moments; n_moments = 2)
+    mc = compare_moments(t_check, t -> sol(t)[1:2], analytical_moments; n_moments=2)
     print_comparison_table(mc, ["m₀", "m₁"])
 
     # -------------------------------------------------------------------
@@ -179,7 +181,7 @@ function main()
             Plots.gr()
 
             # Build dense time arrays for plotting
-            t_dense = range(tspan[1], tspan[2], length = 100)
+            t_dense = range(tspan[1], tspan[2]; length=100)
 
             # Build moment matrices
             n_mom_plot = 2
@@ -191,12 +193,12 @@ function main()
             end
 
             # NDF reconstruction at snapshot times
-            ξ_range = range(0, 2, length = 200)
-            snapshot_times = range(tspan[1], tspan[2], length = 6)[2:end]
+            ξ_range = range(0, 2; length=200)
+            snapshot_times = range(tspan[1], tspan[2]; length=6)[2:end]
             ndfs = Vector{Float64}[]
             for t_snap in snapshot_times
                 m_at_t = sol(t_snap)
-                m_snap = SVector{N_mom, Float64}(max(mi, 1e-30) for mi in m_at_t)
+                m_snap = SVector{N_mom,Float64}(max(mi, 1e-30) for mi in m_at_t)
                 n_eq = (N_mom - 1) ÷ 2
                 res_eq = invert_moments(EQMOM(n_eq, GaussianKernel()), m_snap)
                 ndf = reconstruct_ndf(res_eq, ξ_range, GaussianKernel())
@@ -204,7 +206,7 @@ function main()
             end
 
             # Plot
-            p = plot_pbe_summary(t_dense, m_num, ξ_range, ndfs, snapshot_times; exact = m_ref)
+            p = plot_pbe_summary(t_dense, m_num, ξ_range, ndfs, snapshot_times; exact=m_ref)
             mkpath(joinpath(@__DIR__, "..", "output"))
             savefig(p, output_path("ch07_03_growth_nucleation.png"))
             println("\n  Plot saved to output/ch07_03_growth_nucleation.png")
@@ -221,8 +223,8 @@ function main()
     # -----------------------------------------------------------------------
 
     max_errs = max_abs_errors(mc)
-    pass = verify(mc; atol = [5e-3, 5e-3])
-    print_verification_banner(pass, max_errs, [5e-3, 5e-3], ["m₀", "m₁"])
+    pass = verify(mc; atol=[5e-3, 5e-3])
+    return print_verification_banner(pass, max_errs, [5e-3, 5e-3], ["m₀", "m₁"])
 end
 
 main()

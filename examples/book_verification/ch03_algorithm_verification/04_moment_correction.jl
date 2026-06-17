@@ -67,8 +67,7 @@ println()
 println("Realizable: ", is_realizable(m_ex34_corr; domain=:pos))
 println()
 
-@printf("Restoration of m3: corrected = %.4f, original = 140.0\n",
-    m_ex34_corr[4])
+@printf("Restoration of m3: corrected = %.4f, original = 140.0\n", m_ex34_corr[4])
 println()
 
 # Verification: output must be realizable and m3 should be close to original
@@ -119,9 +118,9 @@ println()
 # Book reference values for the first 4 corrected moments
 @printf("Comparison with book reference values (Exercise 3.5):\n")
 @printf("  m0: corrected = %8.4f, book ~ 0.3689\n", m_ex35_corr[1])
-@printf("  m1: corrected = %8.4f, book ~ 2.378\n",  m_ex35_corr[2])
-@printf("  m2: corrected = %8.4f, book ~ 15.65\n",  m_ex35_corr[3])
-@printf("  m3: corrected = %8.4f, book ~ 104.5\n",   m_ex35_corr[4])
+@printf("  m1: corrected = %8.4f, book ~ 2.378\n", m_ex35_corr[2])
+@printf("  m2: corrected = %8.4f, book ~ 15.65\n", m_ex35_corr[3])
+@printf("  m3: corrected = %8.4f, book ~ 104.5\n", m_ex35_corr[4])
 println()
 
 # The book notes that when multiple moments are corrupted, the corrected set
@@ -145,12 +144,22 @@ try
     gr()
 
     p = plot_moment_comparison(
-        [Vector(m_original), Vector(m_ex34), Vector(m_ex34_corr),
-         Vector(m_ex35), Vector(m_ex35_corr)];
-        labels = ["Original", "Ex3.4 Corrupted", "Ex3.4 Corrected",
-                  "Ex3.5 Corrupted", "Ex3.5 Corrected"],
-        yscale = :log10,
-        title = "Moment Correction Comparison",
+        [
+            Vector(m_original),
+            Vector(m_ex34),
+            Vector(m_ex34_corr),
+            Vector(m_ex35),
+            Vector(m_ex35_corr),
+        ];
+        labels=[
+            "Original",
+            "Ex3.4 Corrupted",
+            "Ex3.4 Corrected",
+            "Ex3.5 Corrupted",
+            "Ex3.5 Corrected",
+        ],
+        yscale=:log10,
+        title="Moment Correction Comparison",
     )
 
     mkpath(joinpath(@__DIR__, "..", "output"))

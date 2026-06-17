@@ -52,11 +52,11 @@ include(joinpath(@__DIR__, "..", "utils", "book_reporting.jl"))
 # Parameters
 # -----------------------------------------------------------------------
 
-const b0         = 0.5    # constant breakage rate
-const V0         = 2.0    # initial monodisperse volume
-const N_quad     = 4      # number of quadrature nodes
-const n_moments  = 6      # moments tracked: m_0 through m_5
-const t_final    = 2.0    # end time
+const b0 = 0.5    # constant breakage rate
+const V0 = 2.0    # initial monodisperse volume
+const N_quad = 4      # number of quadrature nodes
+const n_moments = 6      # moments tracked: m_0 through m_5
+const t_final = 2.0    # end time
 
 # -----------------------------------------------------------------------
 # Analytical solution
@@ -82,17 +82,17 @@ end
 #
 #   S_k = b0 * sum_j w_j * (2/(k+1) - 1) * node_j^k
 
-function breakage_source(m::MVector{n_moments, Float64})
+function breakage_source(m::MVector{n_moments,Float64})
     # Clamp moments to prevent negative values from ODE solver drift
-    m_safe = MVector{n_moments, Float64}(max(mi, 1e-30) for mi in m)
+    m_safe = MVector{n_moments,Float64}(max(mi, 1e-30) for mi in m)
 
     # Invert moments to obtain quadrature
-    res = invert_moments(Wheeler(N_quad), SVector{n_moments, Float64}(m_safe))
+    res = invert_moments(Wheeler(N_quad), SVector{n_moments,Float64}(m_safe))
     nodes = vec(res.nodes)    # SVector{N_quad, Float64}
     weights = res.weights     # SVector{N_quad, Float64}
 
     # Compute source terms for each moment order k = 0..n_moments-1
-    S = MVector{n_moments, Float64}(zeros(n_moments))
+    S = MVector{n_moments,Float64}(zeros(n_moments))
     for k in 0:(n_moments - 1)
         coeff = 2.0 / (k + 1) - 1.0
         val = 0.0
@@ -108,7 +108,7 @@ end
 # ODE right-hand side
 # -----------------------------------------------------------------------
 
-function ode_rhs(m::MVector{n_moments, Float64}, p, t)
+function ode_rhs(m::MVector{n_moments,Float64}, p, t)
     return breakage_source(m)
 end
 
@@ -132,7 +132,7 @@ function main()
     # m_k(0) = V0^k
     # -------------------------------------------------------------------
 
-    m0_init = MVector{n_moments, Float64}(undef)
+    m0_init = MVector{n_moments,Float64}(undef)
     for k in 0:(n_moments - 1)
         m0_init[k + 1] = V0^k
     end
@@ -149,7 +149,7 @@ function main()
 
     tspan = (0.0, t_final)
     prob = ODEProblem(ode_rhs, m0_init, tspan)
-    sol = solve(prob, Tsit5(); reltol = 1e-10, abstol = 1e-12)
+    sol = solve(prob, Tsit5(); reltol=1e-10, abstol=1e-12)
 
     # Extract solution at desired output times
     t_out = [0.0, 0.5, 1.0, 1.5, 2.0]
@@ -158,7 +158,9 @@ function main()
     # Print comparison table
     # -------------------------------------------------------------------
 
-    mc = compare_moments(t_out, t -> sol(t)[1:2], t -> collect(analytical_moments(t)); n_moments = 2)
+    mc = compare_moments(
+        t_out, t -> sol(t)[1:2], t -> collect(analytical_moments(t)); n_moments=2
+    )
     print_comparison_table(mc, ["m₀", "m₁"])
 
     # -------------------------------------------------------------------
@@ -170,7 +172,7 @@ function main()
             Plots.gr()
 
             # Build dense time arrays for plotting
-            t_dense = range(tspan[1], tspan[2], length = 100)
+            t_dense = range(tspan[1], tspan[2]; length=100)
 
             # Build moment matrices
             n_mom_plot = 2
@@ -182,12 +184,12 @@ function main()
             end
 
             # NDF reconstruction at snapshot times
-            ξ_range = range(0, 4, length = 200)
+            ξ_range = range(0, 4; length=200)
             snapshot_times = [0.0, 0.5, 1.0, 1.5, 2.0]
             ndfs = Vector{Float64}[]
             for t_snap in snapshot_times
                 m_at_t = sol(t_snap)
-                m_snap = SVector{n_moments, Float64}(max(mi, 1e-30) for mi in m_at_t)
+                m_snap = SVector{n_moments,Float64}(max(mi, 1e-30) for mi in m_at_t)
                 n_eq = (n_moments - 1) ÷ 2
                 res_eq = invert_moments(EQMOM(n_eq, GaussianKernel()), m_snap)
                 ndf = reconstruct_ndf(res_eq, ξ_range, GaussianKernel())
@@ -195,7 +197,7 @@ function main()
             end
 
             # Plot
-            p = plot_pbe_summary(t_dense, m_num, ξ_range, ndfs, snapshot_times; exact = m_ref)
+            p = plot_pbe_summary(t_dense, m_num, ξ_range, ndfs, snapshot_times; exact=m_ref)
             mkpath(joinpath(@__DIR__, "..", "output"))
             savefig(p, output_path("ch07_02_breakage.png"))
             println("\n  Plot saved to output/ch07_02_breakage.png")
@@ -212,8 +214,8 @@ function main()
     # -------------------------------------------------------------------
 
     max_errs = max_abs_errors(mc)
-    pass = verify(mc; atol = [1e-4, 1e-6])
-    print_verification_banner(pass, max_errs, [1e-4, 1e-6], ["m₀", "m₁"])
+    pass = verify(mc; atol=[1e-4, 1e-6])
+    return print_verification_banner(pass, max_errs, [1e-4, 1e-6], ["m₀", "m₁"])
 end
 
 main()
