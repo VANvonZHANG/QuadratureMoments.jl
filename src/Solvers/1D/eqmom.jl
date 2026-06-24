@@ -76,15 +76,19 @@ end
 function compute_modified_moments(
     m::SVector{L,T}, σ::T, ::GammaKernel, backend::AbstractMathBackend
 ) where {L,T}
+    # Inverse gamma-kernel transform (moments -> modified moments).
+    # Forward (reconstruct_moment) is m_k = sum_i w_i * prod_{r=0}^{k-1}(xi_i+r*sigma),
+    # whose coefficients are UNSIGNED Stirling-first-kind. Its matrix-inverse gives
+    # m*_k = sum_{j=0}^k (-1)^(k+j) * S(k,j) * sigma^(k-j) * m_j   (S = Stirling 2nd kind).
+    # Matches OpenQBMM gammaEQMOM::momentsToMomentsStar.
     m_star = MVector{L,T}(undef)
     for k in 1:L
         k_val = k - 1
         val = zero(T)
         for j in 1:k
             j_val = j - 1
-            # m_star_k = sum_{j=0}^k S(k, j) * sigma^(k-j) * m_j
             s_coeff = stirling2(k_val, j_val, backend)
-            val += s_coeff * (σ^(k_val - j_val)) * m[j]
+            val += (-1)^(k_val + j_val) * s_coeff * (σ^(k_val - j_val)) * m[j]
         end
         m_star[k] = val
     end
@@ -124,15 +128,32 @@ the reconstruction of the \$(2N+1)\$-th moment matches the target exactly.
 # Returns
 - A `QuadratureResult` containing weights, primary nodes, and \$\\sigma\$ parameters.
 raw"""
+# Per-kernel upper bound on sigma for the bracketing search.
+# Gaussian: std dev. Gamma: var/mean. Beta: p2/(1-p2).
+# See OpenQBMM gammaEQMOM::sigmaMax and betaEQMOM::sigmaMax.
+@inline _sigma_max(m0::T, m1::T, m2::T, ::GaussianKernel) where {T} =
+    sqrt(max(eps(T), m2 / m0 - (m1 / m0)^2))
+
+@inline _sigma_max(m0::T, m1::T, m2::T, ::GammaKernel) where {T} =
+    max(zero(T), (m2 / m0 - (m1 / m0)^2) / (m1 / m0))
+
+@inline function _sigma_max(m0::T, m1::T, m2::T, ::BetaKernel) where {T}
+    num = m0 * m2 - m1 * m1
+    den = m0 * m1 - m1 * m1
+    den <= zero(T) && return zero(T)
+    p2 = num / den
+    p2 >= one(T) && return oftype(p2, 1e6)   # degenerate; let the search fall back to 0
+    return p2 / (one(T) - p2)
+end
+
 function invert_moments(
     method::EQMOM{N,K}, m::SVector{L,T}; backend::AbstractMathBackend=NativeBackend()
 ) where {N,K,T,L}
     @assert L >= 2N + 1 "EQMOM requires at least 2N+1 moments"
 
-    # 1. Bounds estimation for σ
+    # 1. Per-kernel upper bound for sigma (OpenQBMM-matched formulas)
     m0, m1, m2 = m[1], m[2], m[3]
-    var_total = max(eps(T), m2 / m0 - (m1 / m0)^2)
-    σ_max = sqrt(var_total)
+    σ_max = _sigma_max(m0, m1, m2, method.kernel)
 
     # 2. Optimization target
     function residual(σ)
