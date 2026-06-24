@@ -2,6 +2,13 @@
 using StaticArrays
 using LinearAlgebra
 
+# NOTE: invert_moments, is_realizable, and mcgraw_correction are defined in later
+# sections of QuadratureMoments.jl (Section 7 Tools / Section 9 API), after this
+# file is included. An explicit `using ..QuadratureMoments:` import would fail at
+# precompile (UndefVarError) because those names don't exist yet at this include
+# site. Bare references are intentional: Julia resolves them at call time, once the
+# full module is loaded.
+
 """
     evolve_moments(m0, source, tspan; dt0, N, tol=1e-12, max_substeps=8, domain=:pos)
 
