@@ -56,7 +56,9 @@ export CQMOM, ECQMOM, TensorQMOM, BruteQMOM
 
 # --- 6. Evolution Solvers ---
 include("Solvers/Evolution/dqmom.jl")
+include("Solvers/Evolution/realizable_evolution.jl")
 export DQMOM, dqmom_source_terms, dqmom_system_matrix, dqmom_matrix, dqmom_solve
+export evolve_moments
 
 # --- 7. Robustness Tools ---
 include("Tools/realizability.jl")

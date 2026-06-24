@@ -14,6 +14,7 @@ using QuadratureMoments
     include("test_brute.jl")
     include("test_dqmom.jl")
     include("test_dqmom_forwarddiff.jl")
+    include("test_realizable_evolution.jl")
     include("test_correction.jl")
     include("test_source_terms.jl")
     include("Analysis/test_ndf_reconstruction.jl")
