@@ -59,3 +59,12 @@ raw"""
 function QuadratureResult(w::SVector{N,T}, n::SMatrix{N,D,T}, s=nothing) where {D,N,T}
     return QuadratureResult{D,N,T}(w, n, s)
 end
+
+"""
+    n_active(res::QuadratureResult; tol=1e-12) -> Int
+
+Number of non-degenerate (weight > tol) quadrature nodes. Adaptive Wheeler/PD
+zero-pad degenerate slots up to `N`; this counts the real ones.
+"""
+@inline n_active(res::QuadratureResult{D,N,T}; tol=1e-12) where {D,N,T} =
+    count(w -> abs(w) > tol, res.weights)

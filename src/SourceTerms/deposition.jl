@@ -34,6 +34,7 @@ function compute_source_terms(
             k = idx - 1
             val = zero(T)
             for i in 1:N
+                iszero(weights[i]) && continue
                 val -= weights[i] * dep.rate_func(nodes[i]) * (nodes[i]^k)
             end
             return val

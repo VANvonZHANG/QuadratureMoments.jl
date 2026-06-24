@@ -121,4 +121,20 @@ using StaticArrays
             @test S_k_total[k] ≈ S_k_agg[k] + S_k_growth[k] atol=1e-10
         end
     end
+
+    @testset "Source terms robust to degenerate (zero-weight) nodes" begin
+        # A rank-1 quadrature padded into a 2-node result: slot 2 is (node=0, weight=0).
+        # A kernel singular at 0 (Brownian-like 1/xi) must NOT produce NaN.
+        weights = SVector{2,Float64}(1.0, 0.0)
+        nodes = SVector{2,Float64}(3.0, 0.0)           # second slot is the degenerate pad
+        sing_kernel(xi, xj) = 1.0 / (xi + xj)          # singular at (0,0)
+        agg = Aggregation(sing_kernel)
+        S = compute_source_terms(agg, nodes, weights, Val(4))
+        @test all(isfinite, S)
+        # Only slot 1 contributes; S_k == 0.5*w1^2*kern*(2*3)^k - w1^2*kern*3^k.
+        for k in 0:3
+            expected = 0.5 * 1.0^2 * (1 / 6.0) * 6.0^k - 1.0^2 * (1 / 6.0) * 3.0^k
+            @test isapprox(S[k + 1], expected; atol=1e-10)
+        end
+    end
 end

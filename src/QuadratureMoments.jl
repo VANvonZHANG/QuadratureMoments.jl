@@ -20,7 +20,7 @@ include("Core/types.jl")
 include("Core/kernels.jl")
 include("Core/source_terms_api.jl")
 export AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
-export QuadratureResult
+export QuadratureResult, n_active
 export AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
 export AbstractSourceTerm, CompositeSourceTerm, compute_source_terms
 

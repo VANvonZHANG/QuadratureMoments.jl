@@ -33,7 +33,9 @@ function compute_source_terms(
             k = idx - 1
             val = zero(T)
             for i in 1:N
+                iszero(weights[i]) && continue
                 for j in 1:N
+                    iszero(weights[j]) && continue
                     beta = agg.kernel(nodes[i], nodes[j])
                     term1 =
                         0.5 * weights[i] * weights[j] * beta * ((nodes[i] + nodes[j])^k)

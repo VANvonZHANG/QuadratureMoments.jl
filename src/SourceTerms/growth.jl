@@ -45,6 +45,7 @@ function compute_source_terms(
             else
                 val = zero(T)
                 for i in 1:N
+                    iszero(weights[i]) && continue
                     val += weights[i] * k * (nodes[i]^(k - 1)) * growth.rate_func(nodes[i])
                 end
                 return val
