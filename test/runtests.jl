@@ -10,6 +10,7 @@ using QuadratureMoments
     include("test_cqmom.jl")
     include("test_ecqmom.jl")
     include("test_eqmom.jl")
+    include("test_eqmom_sources.jl")
     include("test_tensor.jl")
     include("test_brute.jl")
     include("test_dqmom.jl")

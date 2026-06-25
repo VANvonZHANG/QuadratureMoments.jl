@@ -45,7 +45,8 @@ export ParticleGrowth, ParticleShrinkage, Aggregation, Breakage, Nucleation, Dep
 include("Solvers/1D/wheeler.jl")
 include("Solvers/1D/pd.jl")
 include("Solvers/1D/eqmom.jl")
-export Wheeler, PD, EQMOM
+include("Solvers/1D/eqmom_expansion.jl")
+export Wheeler, PD, EQMOM, expand_quadrature
 
 # --- 5. Multi-D Solvers ---
 include("Solvers/MultiD/cqmom.jl")
