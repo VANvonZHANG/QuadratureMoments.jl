@@ -119,11 +119,12 @@ end
 @testset "expand_quadrature: degenerate primary node (single-component NDF)" begin
     # Local moment helpers (scoped inside the Gamma/Beta testsets above, not visible here).
     _gamma_moment_local(xi, k, σ) = k == 0 ? one(xi) : prod(xi + r * σ for r in 0:(k - 1))
-    _beta_moment_local(xi, k, σ) = if k == 0
-        one(xi)
-    else
-        _gamma_moment_local(xi, k, σ) / prod(1 + r * σ for r in 0:(k - 1))
-    end
+    _beta_moment_local(xi, k, σ) =
+        if k == 0
+            one(xi)
+        else
+            _gamma_moment_local(xi, k, σ) / prod(1 + r * σ for r in 0:(k - 1))
+        end
 
     # --- Gamma: single-component NDF -> EQMOM(2) returns 1 real primary + 1
     # zero-padded degenerate slot. expand_quadrature must not crash on the
