@@ -61,12 +61,22 @@ using LinearAlgebra
         # each with a 2-node conditional x2 distribution. (A ground truth with >2 distinct
         # x1 values is outside CQMOM((2,2))'s representable class and would not round-trip.)
         w_true = SVector{4,Float64}(0.20, 0.20, 0.18, 0.42)
-        xi_true = SMatrix{4,2,Float64}(1.0, 1.0, 3.0, 3.0,   # x1 coords (col 1): 2 distinct values
-                                       0.5, 1.5, 2.0, 4.0)   # x2 coords (col 2)
+        xi_true = SMatrix{4,2,Float64}(
+            1.0,
+            1.0,
+            3.0,
+            3.0,   # x1 coords (col 1): 2 distinct values
+            0.5,
+            1.5,
+            2.0,
+            4.0,
+        )   # x2 coords (col 2)
         # Build the 2D moment tensor m[i,j] = sum_a w_a * x1_a^(i-1) * x2_a^(j-1), i,j=1..4
         M = zeros(4, 4)
         for i in 1:4, j in 1:4
-            M[i, j] = sum(w_true[a] * xi_true[a, 1]^(i - 1) * xi_true[a, 2]^(j - 1) for a in 1:4)
+            M[i, j] = sum(
+                w_true[a] * xi_true[a, 1]^(i - 1) * xi_true[a, 2]^(j - 1) for a in 1:4
+            )
         end
         mSA = SMatrix{4,4,Float64}(M)
         res = invert_moments(CQMOM((2, 2)), mSA)
@@ -79,7 +89,10 @@ using LinearAlgebra
         # so atol=1e-10 is a comfortable strict tolerance covering low- and high-order
         # mixed moments alike.
         for (i, j) in [(1, 1), (2, 1), (1, 2), (3, 2), (2, 3), (4, 4), (3, 3)]
-            rec = sum(res.weights[a] * res.nodes[a, 1]^(i - 1) * res.nodes[a, 2]^(j - 1) for a in 1:4)
+            rec = sum(
+                res.weights[a] * res.nodes[a, 1]^(i - 1) * res.nodes[a, 2]^(j - 1) for
+                a in 1:4
+            )
             @test isapprox(rec, M[i, j]; atol=1e-10)
         end
     end

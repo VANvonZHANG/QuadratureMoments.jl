@@ -7,12 +7,14 @@ using Test, QuadratureMoments, StaticArrays
     beta0 = 0.5
     m0_init = 1.0
     xi_init = SVector{2,Float64}(1.0, 3.0)
-    w_init  = SVector{2,Float64}(0.5, 0.5)
+    w_init = SVector{2,Float64}(0.5, 0.5)
     m1_init = sum(w_init[i] * xi_init[i] for i in 1:2)   # = 2.0
     # Build a 4-moment initial condition from the 2-node quadrature
-    m_init = SVector{4,Float64}(ntuple(k -> sum(w_init[i]*xi_init[i]^(k-1) for i in 1:2), Val(4)))
+    m_init = SVector{4,Float64}(
+        ntuple(k -> sum(w_init[i]*xi_init[i]^(k-1) for i in 1:2), Val(4))
+    )
 
-    agg = Aggregation((xi,xj) -> beta0)
+    agg = Aggregation((xi, xj) -> beta0)
     t_end = 1.0
     # dt0=0.02 (not 0.05): first-order explicit Euler on the stiff early
     # transient overshoots m0 decay by ~0.23% at dt0=0.05 (above rtol=1e-3);
@@ -32,7 +34,7 @@ end
     G0 = 0.7
     grow = ParticleGrowth(xi -> G0)
     xi0 = SVector{2,Float64}(1.0, 2.0)
-    w0  = SVector{2,Float64}(0.5, 0.5)
+    w0 = SVector{2,Float64}(0.5, 0.5)
     m_init = SVector{4,Float64}(ntuple(k -> sum(w0[i]*xi0[i]^(k-1) for i in 1:2), Val(4)))
     m_final = evolve_moments(m_init, grow, (0.0, 1.0); dt0=0.05, N=2)
     @test isapprox(m_final[1], m_init[1]; atol=1e-10)   # number conserved under growth

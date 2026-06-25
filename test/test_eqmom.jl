@@ -52,7 +52,7 @@ end
 # Ground truth = analytic 2-component kernel mixture. mu_k(xi_i) is the DEFINITION
 # of the k-th kernel moment; the inversion+reconstruction pipeline must reproduce it.
 
-_gamma_moment(xi, k, σ) = k == 0 ? one(xi) : prod(xi + j * σ for j in 0:(k-1))
+_gamma_moment(xi, k, σ) = k == 0 ? one(xi) : prod(xi + j * σ for j in 0:(k - 1))
 
 @testset "Gamma Kernel Round-Trip (2-node mixture)" begin
     w_true = [0.4, 0.6]
@@ -79,9 +79,9 @@ _gamma_moment(xi, k, σ) = k == 0 ? one(xi) : prod(xi + j * σ for j in 0:(k-1))
     end
 end
 
-_beta_moment(xi, k, σ) =
-    k == 0 ? one(xi) :
-    _gamma_moment(xi, k, σ) / prod(1 + j * σ for j in 0:(k - 1))
+function _beta_moment(xi, k, σ)
+    return k == 0 ? one(xi) : _gamma_moment(xi, k, σ) / prod(1 + j * σ for j in 0:(k - 1))
+end
 
 @testset "Beta Kernel Round-Trip (2-node mixture)" begin
     w_true = [0.5, 0.5]

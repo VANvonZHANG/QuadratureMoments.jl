@@ -23,10 +23,7 @@ function expand_quadrature(
 ) where {N,T,M}
     σ = res.sigmas === nothing ? zero(T) : res.sigmas[1]
     if abs(σ) < eps(T)
-        return (
-            SVector{N,T}(ntuple(i -> res.nodes[i, 1], Val(N))),
-            res.weights,
-        )
+        return (SVector{N,T}(ntuple(i -> res.nodes[i, 1], Val(N))), res.weights)
     end
     z, ν = FastGaussQuadrature.gausshermite(M)
     νsum = sum(ν)
@@ -69,10 +66,7 @@ function expand_quadrature(
 ) where {N,T,M}
     σ = res.sigmas === nothing ? zero(T) : res.sigmas[1]
     if abs(σ) < eps(T)
-        return (
-            SVector{N,T}(ntuple(i -> res.nodes[i, 1], Val(N))),
-            res.weights,
-        )
+        return (SVector{N,T}(ntuple(i -> res.nodes[i, 1], Val(N))), res.weights)
     end
     NT = N * M
     nodes = MVector{NT,T}(undef)
@@ -112,10 +106,7 @@ function expand_quadrature(
 ) where {N,T,M}
     σ = res.sigmas === nothing ? zero(T) : res.sigmas[1]
     if abs(σ) < eps(T)
-        return (
-            SVector{N,T}(ntuple(i -> res.nodes[i, 1], Val(N))),
-            res.weights,
-        )
+        return (SVector{N,T}(ntuple(i -> res.nodes[i, 1], Val(N))), res.weights)
     end
     NT = N * M
     nodes = MVector{NT,T}(undef)

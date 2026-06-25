@@ -2,12 +2,18 @@ using Test, QuadratureMoments, StaticArrays, LinearAlgebra
 
 # Analytic Gaussian raw moment E[X^k] for X ~ N(mu, sigma^2) — independent reference.
 _double_factorial(n) = n <= 0 ? 1 : prod(1:2:n)
-_gauss_moment(mu, k, sig) =
-    sum(binomial(k, 2l) * _double_factorial(2l - 1) * sig^(2l) * mu^(k - 2l) for l in 0:div(k, 2))
+function _gauss_moment(mu, k, sig)
+    return sum(
+        binomial(k, 2l) * _double_factorial(2l - 1) * sig^(2l) * mu^(k - 2l) for
+        l in 0:div(k, 2)
+    )
+end
 
 @testset "expand_quadrature: Gaussian" begin
     # Known 2-Gaussian-mixture NDF.
-    xi_true = [2.0, 5.0]; w_true = [0.4, 0.6]; σ_true = 0.5
+    xi_true = [2.0, 5.0];
+    w_true = [0.4, 0.6];
+    σ_true = 0.5
     m = SVector{5,Float64}(
         sum(w_true[i] * _gauss_moment(xi_true[i], k, σ_true) for i in 1:2) for k in 0:4
     )
@@ -44,7 +50,9 @@ end
     # include-order-dependent and fragile).
     _gamma_moment(xi, k, σ) = k == 0 ? one(xi) : prod(xi + r * σ for r in 0:(k - 1))
 
-    xi_true = [2.0, 5.0]; w_true = [0.4, 0.6]; σ_true = 0.5
+    xi_true = [2.0, 5.0];
+    w_true = [0.4, 0.6];
+    σ_true = 0.5
     m = SVector{5,Float64}(
         sum(w_true[i] * _gamma_moment(xi_true[i], k, σ_true) for i in 1:2) for k in 0:4
     )
@@ -79,7 +87,9 @@ end
     _beta_moment(xi, k, σ) =
         k == 0 ? one(xi) : _gamma_moment(xi, k, σ) / prod(1 + r * σ for r in 0:(k - 1))
 
-    xi_true = [0.2, 0.6]; w_true = [0.5, 0.5]; σ_true = 0.1
+    xi_true = [0.2, 0.6];
+    w_true = [0.5, 0.5];
+    σ_true = 0.1
     m = SVector{5,Float64}(
         sum(w_true[i] * _beta_moment(xi_true[i], k, σ_true) for i in 1:2) for k in 0:4
     )
@@ -109,15 +119,21 @@ end
 @testset "expand_quadrature: degenerate primary node (single-component NDF)" begin
     # Local moment helpers (scoped inside the Gamma/Beta testsets above, not visible here).
     _gamma_moment_local(xi, k, σ) = k == 0 ? one(xi) : prod(xi + r * σ for r in 0:(k - 1))
-    _beta_moment_local(xi, k, σ) =
-        k == 0 ? one(xi) : _gamma_moment_local(xi, k, σ) / prod(1 + r * σ for r in 0:(k - 1))
+    _beta_moment_local(xi, k, σ) = if k == 0
+        one(xi)
+    else
+        _gamma_moment_local(xi, k, σ) / prod(1 + r * σ for r in 0:(k - 1))
+    end
 
     # --- Gamma: single-component NDF -> EQMOM(2) returns 1 real primary + 1
     # zero-padded degenerate slot. expand_quadrature must not crash on the
     # degenerate slot (alpha = xi_i/sigma = 0 -> gausslaguerre(M,-1) DomainError).
-    xi_true = [4.0]; w_true = [1.0]; σ_true = 1.0
+    xi_true = [4.0];
+    w_true = [1.0];
+    σ_true = 1.0
     m = SVector{5,Float64}(
-        sum(w_true[i] * _gamma_moment_local(xi_true[i], k, σ_true) for i in 1:1) for k in 0:4
+        sum(w_true[i] * _gamma_moment_local(xi_true[i], k, σ_true) for i in 1:1) for
+        k in 0:4
     )
     res = invert_moments(EQMOM(2, GammaKernel()), m)
     # At least one primary weight is ~0 (degenerate slot).
@@ -130,10 +146,14 @@ end
     @test isapprox(sum(weights_exp), m[1]; atol=1e-10)   # mass preserved
 
     # --- Beta: same degeneracy class. xi_true in (0,1) so the beta node is valid.
-    xi_true_beta = [0.4]; w_true_beta = [1.0]; σ_true_beta = 1.0
+    xi_true_beta = [0.4];
+    w_true_beta = [1.0];
+    σ_true_beta = 1.0
     m_beta = SVector{5,Float64}(
-        sum(w_true_beta[i] * _beta_moment_local(xi_true_beta[i], k, σ_true_beta) for i in 1:1)
-        for k in 0:4
+        sum(
+            w_true_beta[i] * _beta_moment_local(xi_true_beta[i], k, σ_true_beta) for
+            i in 1:1
+        ) for k in 0:4
     )
     res_beta = invert_moments(EQMOM(2, BetaKernel()), m_beta)
     @test count(iszero, res_beta.weights) >= 1 || minimum(abs.(res_beta.weights)) < 1e-8
