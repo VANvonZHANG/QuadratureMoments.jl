@@ -37,3 +37,36 @@ _gauss_moment(mu, k, sig) =
     @test isapprox(S[1], -0.5 * beta0 * m[1]^2; atol=1e-9)
     @test isapprox(S[2], 0.0; atol=1e-9)
 end
+
+@testset "expand_quadrature: Gamma" begin
+    # testset-local to avoid colliding with the top-level _gamma_moment in test_eqmom.jl
+    # (runtests.jl includes both files; a top-level redefinition here would be
+    # include-order-dependent and fragile).
+    _gamma_moment(xi, k, σ) = k == 0 ? one(xi) : prod(xi + r * σ for r in 0:(k - 1))
+
+    xi_true = [2.0, 5.0]; w_true = [0.4, 0.6]; σ_true = 0.5
+    m = SVector{5,Float64}(
+        sum(w_true[i] * _gamma_moment(xi_true[i], k, σ_true) for i in 1:2) for k in 0:4
+    )
+    res = invert_moments(EQMOM(2, GammaKernel()), m)
+    @test isapprox(res.sigmas[1], σ_true; atol=1e-6)
+
+    M = 8
+    nodes_exp, weights_exp = expand_quadrature(res, GammaKernel(), Val(M))
+    @test length(nodes_exp) == 2 * M
+    @test isapprox(sum(weights_exp), m[1]; atol=1e-10)
+    # Expanded quadrature must be non-negative (gamma support is [0, inf)).
+    @test all(nodes_exp .> 0.0)
+    # Moment reproduction vs analytic gamma-mixture moments, k = 0..2M-1.
+    # atol=1e-7 per the brief; rtol=1e-9 is required because gamma raw moments
+    # grow very fast with k (here the k=15 mixture moment is O(1e10)), so a pure
+    # atol is unsatisfiable at machine precision for high-k terms. rtol=1e-9
+    # still distinguishes the gamma kernel from a Dirac quadrature: the Dirac
+    # approximation errs by ~σ^2*(k choose 2)*xi^(k-2) at order k>=2, which for
+    # this test's parameters is far larger than 1e-9 relative error.
+    for k in 0:(2M - 1)
+        expanded_mk = sum(weights_exp[j] * nodes_exp[j]^k for j in 1:(2M))
+        analytic_mk = sum(w_true[i] * _gamma_moment(xi_true[i], k, σ_true) for i in 1:2)
+        @test isapprox(expanded_mk, analytic_mk; atol=1e-7, rtol=1e-9)
+    end
+end
