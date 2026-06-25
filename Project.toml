@@ -1,7 +1,7 @@
 name = "QuadratureMoments"
 uuid = "67ad929c-df03-4828-9f1c-8a7f138edff4"
 authors = ["Fan Zhang"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
