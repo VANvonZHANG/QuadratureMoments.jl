@@ -35,6 +35,14 @@ function expand_quadrature(
     nodes = MVector{NT,T}(undef)
     weights = MVector{NT,T}(undef)
     for i in 1:N
+        if iszero(res.weights[i])
+            for j in 1:M
+                idx = (i - 1) * M + j
+                nodes[idx] = zero(T)
+                weights[idx] = zero(T)
+            end
+            continue
+        end
         xi = res.nodes[i, 1]
         wi = res.weights[i]
         for j in 1:M
@@ -70,6 +78,14 @@ function expand_quadrature(
     nodes = MVector{NT,T}(undef)
     weights = MVector{NT,T}(undef)
     for i in 1:N
+        if iszero(res.weights[i])
+            for j in 1:M
+                idx = (i - 1) * M + j
+                nodes[idx] = zero(T)
+                weights[idx] = zero(T)
+            end
+            continue
+        end
         xi = res.nodes[i, 1]
         a = xi / σ                  # beta shape a_i = xi_i/sigma
         b = (1 - xi) / σ            # beta shape b_i = (1 - xi_i)/sigma
@@ -105,6 +121,14 @@ function expand_quadrature(
     nodes = MVector{NT,T}(undef)
     weights = MVector{NT,T}(undef)
     for i in 1:N
+        if iszero(res.weights[i])
+            for j in 1:M
+                idx = (i - 1) * M + j
+                nodes[idx] = zero(T)
+                weights[idx] = zero(T)
+            end
+            continue
+        end
         α = res.nodes[i, 1] / σ          # gamma shape parameter for primary node i
         t, ω = FastGaussQuadrature.gausslaguerre(M, α - 1)   # per-primary-node rule
         ωsum = sum(ω)                    # = Gamma(α); normalizing avoids needing SpecialFunctions
