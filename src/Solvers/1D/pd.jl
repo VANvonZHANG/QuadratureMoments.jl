@@ -68,23 +68,31 @@ function pd_inversion(m::AbstractVector{T}) where {T}
         ζ[α] = P[1, α + 1] / (P[1, α] * P[1, α - 1])
     end
 
+    # Determine active rank: stop where the recurrence product goes non-positive
+    # or non-finite (non-realizable Hankel determinant / 0-0 in the recurrence).
+    # Mirror Wheeler's adaptive rank reduction instead of abs()-masking the sign.
     a = zeros(T, N)
-    b = zeros(T, N - 1)
-
     for α in 1:N
         a[α] = ζ[2α] + ζ[2α - 1]
     end
-
+    actual_N = N
+    b_off = zeros(T, N - 1)
     for α in 1:(N - 1)
-        b[α] = sqrt(abs(ζ[2α + 1] * ζ[2α]))
+        prod_ζ = ζ[2α + 1] * ζ[2α]
+        if !isfinite(prod_ζ) || prod_ζ <= 0
+            actual_N = α
+            break
+        end
+        b_off[α] = sqrt(prod_ζ)
     end
 
-    J = SymTridiagonal(a, b)
+    J = SymTridiagonal(a[1:actual_N], b_off[1:max(actual_N - 1, 0)])
     eigen_decomp = eigen(J)
 
-    nodes = eigen_decomp.values
-    weights = m[1] .* (eigen_decomp.vectors[1, :] .^ 2)
-
+    nodes = zeros(T, N)
+    weights = zeros(T, N)
+    nodes[1:actual_N] = eigen_decomp.values
+    weights[1:actual_N] = m[1] .* (eigen_decomp.vectors[1, 1:actual_N] .^ 2)
     return nodes, weights
 end
 
@@ -113,12 +121,26 @@ function _pd_inversion(m::SVector{L,T}, ::Val{N}) where {L,T,N}
         a[α] = ζ[2α] + ζ[2α - 1]
     end
 
+    # Adaptive rank reduction: truncate when the off-diagonal product goes
+    # non-positive or non-finite (non-realizable). Mirror Wheeler's pattern:
+    # zero-init the full MMatrix, fill only the active block, and eigen-decompose
+    # the full SMatrix. The unused lower-right zero block yields eigenvalue 0
+    # with eigenvectors whose first component is 0 → weight 0 emerges naturally.
+    actual_N = N
+    for i in 1:(N - 1)
+        prod_ζ = ζ[2i + 1] * ζ[2i]
+        if !isfinite(prod_ζ) || prod_ζ <= 0
+            actual_N = i
+            break
+        end
+    end
+
     J_M = zero(MMatrix{N,N,T})
-    for i in 1:N
+    for i in 1:actual_N
         J_M[i, i] = a[i]
     end
-    for i in 1:(N - 1)
-        off = sqrt(abs(ζ[2i + 1] * ζ[2i]))
+    for i in 1:(actual_N - 1)
+        off = sqrt(ζ[2i + 1] * ζ[2i])
         J_M[i, i + 1] = off
         J_M[i + 1, i] = off
     end

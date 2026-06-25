@@ -56,4 +56,20 @@ end
 
         @test weights isa SVector{4,Float64}
     end
+
+    @testset "PD rank reduction on degenerate (near-monodisperse) moments" begin
+        # Moments of a single Dirac at xi=3 with weight 1: m_k = 3^k.
+        # PD(2) should degenerate to 1 active node (xi=3, w=1) and 1 zero-filled slot,
+        # NOT produce a NaN or a spurious negative-weight second node.
+        m = SVector{4,Float64}(1.0, 3.0, 9.0, 27.0)
+        res = invert_moments(PD(2), m)
+        @test all(isfinite, res.nodes)
+        @test all(isfinite, res.weights)
+        @test isapprox(res.weights[1] + res.weights[2], 1.0; atol=1e-10)
+        # Reconstruct m0..m3 from the returned quadrature; must match input.
+        for k in 0:3
+            rec = sum(res.weights[i] * res.nodes[i, 1]^k for i in 1:2)
+            @test isapprox(rec, m[k + 1]; atol=1e-8)
+        end
+    end
 end

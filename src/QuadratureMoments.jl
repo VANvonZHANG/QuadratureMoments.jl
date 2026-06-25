@@ -20,7 +20,7 @@ include("Core/types.jl")
 include("Core/kernels.jl")
 include("Core/source_terms_api.jl")
 export AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
-export QuadratureResult
+export QuadratureResult, n_active
 export AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
 export AbstractSourceTerm, CompositeSourceTerm, compute_source_terms
 
@@ -45,7 +45,8 @@ export ParticleGrowth, ParticleShrinkage, Aggregation, Breakage, Nucleation, Dep
 include("Solvers/1D/wheeler.jl")
 include("Solvers/1D/pd.jl")
 include("Solvers/1D/eqmom.jl")
-export Wheeler, PD, EQMOM
+include("Solvers/1D/eqmom_expansion.jl")
+export Wheeler, PD, EQMOM, expand_quadrature
 
 # --- 5. Multi-D Solvers ---
 include("Solvers/MultiD/cqmom.jl")
@@ -56,7 +57,9 @@ export CQMOM, ECQMOM, TensorQMOM, BruteQMOM
 
 # --- 6. Evolution Solvers ---
 include("Solvers/Evolution/dqmom.jl")
+include("Solvers/Evolution/realizable_evolution.jl")
 export DQMOM, dqmom_source_terms, dqmom_system_matrix, dqmom_matrix, dqmom_solve
+export evolve_moments
 
 # --- 7. Robustness Tools ---
 include("Tools/realizability.jl")

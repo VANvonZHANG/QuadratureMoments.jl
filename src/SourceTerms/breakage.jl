@@ -38,6 +38,7 @@ function compute_source_terms(
             k = idx - 1
             val = zero(T)
             for i in 1:N
+                iszero(weights[i]) && continue
                 freq = breakage.frequency_func(nodes[i])
                 frag_moment = breakage.fragment_moment_func(k, nodes[i])
 
