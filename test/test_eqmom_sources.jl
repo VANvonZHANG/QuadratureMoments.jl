@@ -70,3 +70,38 @@ end
         @test isapprox(expanded_mk, analytic_mk; atol=1e-7, rtol=1e-9)
     end
 end
+
+@testset "expand_quadrature: Beta" begin
+    # testset-local helpers (per clarification 3): the gamma testset above scopes its
+    # `_gamma_moment` INSIDE its @testset, so it is not visible here. Define both
+    # locally to avoid colliding with the top-level helpers in test_eqmom.jl.
+    _gamma_moment(xi, k, σ) = k == 0 ? one(xi) : prod(xi + r * σ for r in 0:(k - 1))
+    _beta_moment(xi, k, σ) =
+        k == 0 ? one(xi) : _gamma_moment(xi, k, σ) / prod(1 + r * σ for r in 0:(k - 1))
+
+    xi_true = [0.2, 0.6]; w_true = [0.5, 0.5]; σ_true = 0.1
+    m = SVector{5,Float64}(
+        sum(w_true[i] * _beta_moment(xi_true[i], k, σ_true) for i in 1:2) for k in 0:4
+    )
+    res = invert_moments(EQMOM(2, BetaKernel()), m)
+    @test isapprox(res.sigmas[1], σ_true; atol=1e-6)
+
+    M = 8
+    nodes_exp, weights_exp = expand_quadrature(res, BetaKernel(), Val(M))
+    @test length(nodes_exp) == 2 * M
+    @test isapprox(sum(weights_exp), m[1]; atol=1e-10)
+    # Beta support is [0,1].
+    @test all(0.0 .<= nodes_exp .<= 1.0)
+    # Moment reproduction vs analytic beta-mixture moments, k = 0..2M-1.
+    # atol=1e-8 per the brief; rtol=1e-9 added for safety/consistency with the
+    # Gaussian and Gamma testsets. Beta moments on [0,1] are bounded (<=1), so
+    # the atol alone is in fact satisfiable here; the rtol is harmless. This
+    # still distinguishes the beta kernel from a Dirac quadrature: the Dirac
+    # approximation errs by ~sigma^2*(k choose 2)*xi^(k-2) at order k>=2, which
+    # for these parameters (xi~0.4, sigma=0.1) is O(1e-3) at k=2 — far above 1e-9.
+    for k in 0:(2M - 1)
+        expanded_mk = sum(weights_exp[j] * nodes_exp[j]^k for j in 1:(2M))
+        analytic_mk = sum(w_true[i] * _beta_moment(xi_true[i], k, σ_true) for i in 1:2)
+        @test isapprox(expanded_mk, analytic_mk; atol=1e-8, rtol=1e-9)
+    end
+end
