@@ -151,4 +151,33 @@ using StaticArrays
         # S_1 is NOT generally zero under LengthBased (mass moment not conserved)
         @test abs(S_k[2]) > 1e-6
     end
+
+    @testset "Backward compat: old-form == explicit MassBased()" begin
+        # Aggregation(f) defaults to MassBased(); must equal explicit MassBased() and the
+        # hand-computed mass-based source.
+        beta_0 = 1.2
+        S_old = compute_source_terms(Aggregation((xi, xj) -> beta_0), nodes, weights, Val(2))
+        S_new = compute_source_terms(Aggregation((xi, xj) -> beta_0, MassBased()), nodes, weights, Val(2))
+        @test S_old == S_new
+        @test S_old[1] ≈ -0.5 * beta_0 * m0^2 atol=1e-12
+
+        # Breakage(f, fn) defaults to MassBased(); plain-function daughter via fallback.
+        b0 = 1.5
+        Sb_old = compute_source_terms(Breakage(xi -> b0, (k, xi) -> 2^(1 - k) * xi^k), nodes, weights, Val(2))
+        Sb_new = compute_source_terms(Breakage(xi -> b0, (k, xi) -> 2^(1 - k) * xi^k, MassBased()), nodes, weights, Val(2))
+        @test Sb_old == Sb_new
+    end
+
+    @testset "coord-aware source composes with expand_quadrature" begin
+        # Gaussian EQMOM expands nodes over (-inf, inf), which can include negative
+        # values. Only MassBased (birth (xi_i+xi_j)^k, defined for all reals) is valid
+        # on them; LengthBased birth (xi_i^3+xi_j^3)^(k/3) needs non-negative nodes
+        # (diameters) and is exercised on positive nodes in test_physics_kernels.jl.
+        m = @SVector [1.0, 5.2, 29.0, 170.8, 1051.0]
+        res = invert_moments(EQMOM(2, GaussianKernel()), m)
+        en, ew = expand_quadrature(res, GaussianKernel(), Val(8))
+        S_mass = compute_source_terms(Aggregation(Constant(1.0), MassBased()), en, ew, Val(4))
+        @test all(isfinite, S_mass)
+        @test S_mass[2] ≈ 0.0 atol=1e-6    # mass conserved under MassBased aggregation
+    end
 end
