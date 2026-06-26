@@ -152,20 +152,29 @@ using StaticArrays
         @test abs(S_k[2]) > 1e-6
     end
 
-    @testset "Backward compat: old-form == explicit MassBased()" begin
-        # Aggregation(f) defaults to MassBased(); must equal explicit MassBased() and the
-        # hand-computed mass-based source.
-        beta_0 = 1.2
-        S_old = compute_source_terms(Aggregation((xi, xj) -> beta_0), nodes, weights, Val(2))
-        S_new = compute_source_terms(Aggregation((xi, xj) -> beta_0, MassBased()), nodes, weights, Val(2))
-        @test S_old == S_new
-        @test S_old[1] ≈ -0.5 * beta_0 * m0^2 atol=1e-12
+    @testset "Backward compat: old-form matches raw physics snapshot" begin
+        # Snapshots computed directly from the raw physics formulas (independent of the
+        # QuadratureMoments package): plain Array{Float64}, double for-loops, no `using`.
+        # Fixture restated here so the snapshot test is self-contained (independent of any
+        # `nodes`/`weights` re-binding in earlier testsets).
+        # atol=1e-10 reflects the refactor's floating-point operation-order change
+        # (old: separate term1 - term2 products; new: factored w_i*w_j*β*(0.5*birth - death)),
+        # NOT a regression — results agree to ~1e-14.
+        nodes_bc = @SVector [1.0, 2.0, 3.0]
+        weights_bc = @SVector [0.5, 0.3, 0.2]
 
-        # Breakage(f, fn) defaults to MassBased(); plain-function daughter via fallback.
+        beta_0 = 1.2
+        # Aggregation, mass-based: S_k = 0.5*Σ_i Σ_j w_i w_j β (ξ_i+ξ_j)^k - Σ_i Σ_j w_i w_j β ξ_i^k
+        ref_agg = [-0.6000000000000001, 4.440892098500626e-16, 3.468, 21.419999999999998]
+        S_old = compute_source_terms(Aggregation((xi, xj) -> beta_0), nodes_bc, weights_bc, Val(4))
+        @test S_old ≈ ref_agg atol=1e-10
+
         b0 = 1.5
-        Sb_old = compute_source_terms(Breakage(xi -> b0, (k, xi) -> 2^(1 - k) * xi^k), nodes, weights, Val(2))
-        Sb_new = compute_source_terms(Breakage(xi -> b0, (k, xi) -> 2^(1 - k) * xi^k, MassBased()), nodes, weights, Val(2))
-        @test Sb_old == Sb_new
+        # Breakage, mass-based, symmetric binary daughter (k,ξ) -> 2^(1-k) ξ^k:
+        # S_k = Σ_i w_i b0 2^(1-k) ξ_i^k - Σ_i w_i b0 ξ_i^k
+        ref_brk = [1.5, 0.0, -2.625, -9.3375]
+        Sb_old = compute_source_terms(Breakage(xi -> b0, (k, xi) -> 2.0^(1 - k) * xi^k), nodes_bc, weights_bc, Val(4))
+        @test Sb_old ≈ ref_brk atol=1e-10
     end
 
     @testset "coord-aware source composes with expand_quadrature" begin
