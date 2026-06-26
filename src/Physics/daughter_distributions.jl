@@ -6,9 +6,9 @@
 using ..QuadratureMoments: daughter_moment, MassBased, LengthBased
 
 raw"""Symmetric binary breakage: two equal daughters."""
-struct Symmetric end
-@inline daughter_moment(::Symmetric, k, xi, ::MassBased)   = 2^(1 - k) * xi^k
-@inline daughter_moment(::Symmetric, k, xi, ::LengthBased) = 2^((3 - k) / 3) * xi^k
+struct SymmetricFragmentation end
+@inline daughter_moment(::SymmetricFragmentation, k, xi, ::MassBased)   = 2^(1 - k) * xi^k
+@inline daughter_moment(::SymmetricFragmentation, k, xi, ::LengthBased) = 2^((3 - k) / 3) * xi^k
 
 raw"""Uniform daughter distribution."""
 struct Uniform end

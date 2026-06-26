@@ -47,7 +47,7 @@ export ParticleGrowth, ParticleShrinkage, Aggregation, Breakage, Nucleation, Dep
 include("Physics/aggregation_kernels.jl")
 include("Physics/daughter_distributions.jl")
 export Constant, Sum, Brownian
-export Symmetric, Uniform, OneQuarterMassRatio, Erosion, FullFragmentation
+export SymmetricFragmentation, Uniform, OneQuarterMassRatio, Erosion, FullFragmentation
 
 # --- 4. 1D Solvers ---
 include("Solvers/1D/wheeler.jl")

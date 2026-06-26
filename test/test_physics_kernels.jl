@@ -1,9 +1,6 @@
 using Test
 using QuadratureMoments
 using StaticArrays
-# Disambiguate daughter-distribution names from LinearAlgebra.Symmetric, which is
-# also exported via QuadratureMoments (which does `using LinearAlgebra`).
-import QuadratureMoments: Symmetric, Uniform, OneQuarterMassRatio, Erosion, FullFragmentation
 
 @testset "Physics kernel library" begin
     @testset "Aggregation kernels" begin
@@ -24,9 +21,9 @@ import QuadratureMoments: Symmetric, Uniform, OneQuarterMassRatio, Erosion, Full
 
     @testset "Daughter distributions (MassBased / LengthBased table)" begin
         # Symmetric
-        @test daughter_moment(Symmetric(), 1, 4.0, MassBased())   ≈ 4.0          # 2^0 * 4
-        @test daughter_moment(Symmetric(), 0, 4.0, MassBased())   ≈ 2.0          # two daughters
-        @test daughter_moment(Symmetric(), 3, 4.0, LengthBased()) ≈ 4.0^3        # volume conserved
+        @test daughter_moment(SymmetricFragmentation(), 1, 4.0, MassBased())   ≈ 4.0          # 2^0 * 4
+        @test daughter_moment(SymmetricFragmentation(), 0, 4.0, MassBased())   ≈ 2.0          # two daughters
+        @test daughter_moment(SymmetricFragmentation(), 3, 4.0, LengthBased()) ≈ 4.0^3        # volume conserved
         # Uniform
         @test daughter_moment(Uniform(), 1, 4.0, MassBased()) ≈ 4.0              # 2*4/(1+1)
         @test daughter_moment(Uniform(), 0, 4.0, MassBased()) ≈ 2.0              # 2*1/(0+1)
@@ -39,10 +36,10 @@ import QuadratureMoments: Symmetric, Uniform, OneQuarterMassRatio, Erosion, Full
         @test daughter_moment(FullFragmentation(2.0), 0, 4.0, MassBased()) ≈ 4.0 / 2.0
     end
 
-    @testset "Breakage(Constant, Symmetric, LengthBased) end-to-end" begin
+    @testset "Breakage(Constant, SymmetricFragmentation, LengthBased) end-to-end" begin
         nodes = @SVector [1.0, 2.0, 4.0]
         weights = @SVector [0.4, 0.35, 0.25]
-        brk = Breakage(xi -> 1.5, Symmetric(), LengthBased())
+        brk = Breakage(xi -> 1.5, SymmetricFragmentation(), LengthBased())
         S = compute_source_terms(brk, nodes, weights, Val(4))
         # Symmetric binary breakage conserves volume (m_3) under LengthBased:
         @test S[4] ≈ 0.0 atol=1e-10

@@ -146,7 +146,7 @@ function _pd_inversion(m::SVector{L,T}, ::Val{N}) where {L,T,N}
     end
 
     J = SMatrix{N,N,T}(J_M)
-    eigen_decomp = eigen(LinearAlgebra.Symmetric(J))
+    eigen_decomp = eigen(Symmetric(J))
 
     nodes = SVector{N,T}(eigen_decomp.values)
     weights = SVector{N,T}(ntuple(i -> m[1] * eigen_decomp.vectors[1, i]^2, Val(N)))

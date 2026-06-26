@@ -50,6 +50,6 @@ function errors — use a library daughter object instead.
 @inline function daughter_moment(d::Function, k, xi, ::LengthBased)
     return error(
         "daughter_moment: a plain-function daughter cannot infer its LengthBased form. " *
-        "Use a library daughter distribution (e.g. Symmetric()) instead."
+        "Use a library daughter distribution (e.g. SymmetricFragmentation()) instead."
     )
 end

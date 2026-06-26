@@ -86,6 +86,6 @@ Uses eigenvalue analysis with a tolerance of \$-\\sqrt{\\epsilon}\$.
 raw"""
 @inline function is_psd(H::AbstractMatrix{T}, ::Type{T}) where {T}
     # For small matrices, eigvals is robust
-    vals = eigvals(LinearAlgebra.Symmetric(H))
+    vals = eigvals(Symmetric(H))
     return all(vals .> -sqrt(eps(T)))
 end

@@ -19,7 +19,7 @@ A source term representing particle breakage.
 - `coord::C`: coordinate convention, default `MassBased()`.
 
 For a plain-function `daughter`, `MassBased` calls `daughter(k, xi)` (backward compatible);
-`LengthBased` errors — use a library daughter object (`Symmetric`, `Uniform`, …) instead.
+`LengthBased` errors — use a library daughter object (`SymmetricFragmentation`, `Uniform`, …) instead.
 """
 struct Breakage{F,P,C<:AbstractCoord} <: AbstractSourceTerm
     frequency_func::F
