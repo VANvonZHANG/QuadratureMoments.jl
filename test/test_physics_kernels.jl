@@ -1,6 +1,9 @@
 using Test
 using QuadratureMoments
 using StaticArrays
+# Disambiguate daughter-distribution names from LinearAlgebra.Symmetric, which is
+# also exported via QuadratureMoments (which does `using LinearAlgebra`).
+import QuadratureMoments: Symmetric, Uniform, OneQuarterMassRatio, Erosion, FullFragmentation
 
 @testset "Physics kernel library" begin
     @testset "Aggregation kernels" begin
@@ -17,5 +20,33 @@ using StaticArrays
         @test all(isfinite, S)
         # Volume (m_3) conserved under LengthBased aggregation for any symmetric kernel:
         @test S[4] ≈ 0.0 atol=1e-10
+    end
+
+    @testset "Daughter distributions (MassBased / LengthBased table)" begin
+        # Symmetric
+        @test daughter_moment(Symmetric(), 1, 4.0, MassBased())   ≈ 4.0          # 2^0 * 4
+        @test daughter_moment(Symmetric(), 0, 4.0, MassBased())   ≈ 2.0          # two daughters
+        @test daughter_moment(Symmetric(), 3, 4.0, LengthBased()) ≈ 4.0^3        # volume conserved
+        # Uniform
+        @test daughter_moment(Uniform(), 1, 4.0, MassBased()) ≈ 4.0              # 2*4/(1+1)
+        @test daughter_moment(Uniform(), 0, 4.0, MassBased()) ≈ 2.0              # 2*1/(0+1)
+        # OneQuarterMassRatio
+        @test daughter_moment(OneQuarterMassRatio(), 1, 5.0, MassBased()) ≈ 5.0  # (4+1)*5/5
+        # Erosion (needs d0)
+        @test daughter_moment(Erosion(1.0), 1, 4.0, MassBased())   ≈ 1.0 + 3.0
+        @test daughter_moment(Erosion(1.0), 3, 4.0, LengthBased()) ≈ 1.0 + (4.0^3 - 1.0^3)
+        # FullFragmentation (needs d0)
+        @test daughter_moment(FullFragmentation(2.0), 0, 4.0, MassBased()) ≈ 4.0 / 2.0
+    end
+
+    @testset "Breakage(Constant, Symmetric, LengthBased) end-to-end" begin
+        nodes = @SVector [1.0, 2.0, 4.0]
+        weights = @SVector [0.4, 0.35, 0.25]
+        brk = Breakage(xi -> 1.5, Symmetric(), LengthBased())
+        S = compute_source_terms(brk, nodes, weights, Val(4))
+        # Symmetric binary breakage conserves volume (m_3) under LengthBased:
+        @test S[4] ≈ 0.0 atol=1e-10
+        # Number: each break turns 1 particle into 2, so S_0 = b0 * (2 - 1) * m0 = b0*m0
+        @test S[1] ≈ 1.5 * sum(weights) atol=1e-10
     end
 end

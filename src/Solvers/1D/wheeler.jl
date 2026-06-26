@@ -184,7 +184,7 @@ function _adaptive_wheeler_static(
         J_dense[i + 1, i] = val
     end
 
-    eigen_decomp = eigen(Symmetric(SMatrix{N_max,N_max,T}(J_dense)))
+    eigen_decomp = eigen(LinearAlgebra.Symmetric(SMatrix{N_max,N_max,T}(J_dense)))
 
     nodes = SVector{N_max,T}(eigen_decomp.values)
     weights = SVector{N_max,T}(ntuple(i -> m[1] * eigen_decomp.vectors[1, i]^2, Val(N_max)))
