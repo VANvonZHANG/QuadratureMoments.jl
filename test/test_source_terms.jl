@@ -137,4 +137,18 @@ using StaticArrays
             @test isapprox(S[k + 1], expected; atol=1e-10)
         end
     end
+
+    @testset "LengthBased-based Aggregation (volume conservation)" begin
+        beta_0 = 1.2
+        agg_len = Aggregation((xi, xj) -> beta_0, LengthBased())
+
+        S_k = compute_source_terms(agg_len, nodes, weights, Val(4))
+        @test size(S_k) == (4,)
+        # S_3 (k=3, volume moment) == 0  — volume conserved under LengthBased aggregation
+        @test S_k[4] ≈ 0.0 atol=1e-10
+        # S_0 is coordinate-independent (number): -0.5*beta_0*m0^2
+        @test S_k[1] ≈ -0.5 * beta_0 * (m0^2) atol=1e-10
+        # S_1 is NOT generally zero under LengthBased (mass moment not conserved)
+        @test abs(S_k[2]) > 1e-6
+    end
 end
