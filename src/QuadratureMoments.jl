@@ -23,7 +23,7 @@ include("Core/source_terms_api.jl")
 export AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
 export QuadratureResult, n_active
 export AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
-export AbstractCoord, Mass, Length, aggregation_birth, daughter_moment
+export AbstractCoord, MassBased, LengthBased, aggregation_birth, daughter_moment
 export AbstractSourceTerm, CompositeSourceTerm, compute_source_terms
 
 # --- 2. Math Utilities (Dual Backend) ---
