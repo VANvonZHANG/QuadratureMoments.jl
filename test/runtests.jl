@@ -19,6 +19,7 @@ using QuadratureMoments
     include("test_realizable_evolution.jl")
     include("test_correction.jl")
     include("test_source_terms.jl")
+    include("test_physics_kernels.jl")
     include("Analysis/test_ndf_reconstruction.jl")
     include("Analysis/test_moment_verification.jl")
     include("Analysis/test_plots_ext.jl")

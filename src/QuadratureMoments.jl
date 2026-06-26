@@ -43,6 +43,10 @@ include("SourceTerms/nucleation.jl")
 include("SourceTerms/deposition.jl")
 export ParticleGrowth, ParticleShrinkage, Aggregation, Breakage, Nucleation, Deposition
 
+# --- 3b. Physics Kernel Library ---
+include("Physics/aggregation_kernels.jl")
+export Constant, Sum, Brownian
+
 # --- 4. 1D Solvers ---
 include("Solvers/1D/wheeler.jl")
 include("Solvers/1D/pd.jl")
