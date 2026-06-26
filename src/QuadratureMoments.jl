@@ -18,10 +18,12 @@ using Combinatorics
 # --- 1. Core Infrastructure ---
 include("Core/types.jl")
 include("Core/kernels.jl")
+include("Core/coordinates.jl")
 include("Core/source_terms_api.jl")
 export AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
 export QuadratureResult, n_active
 export AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
+export AbstractCoord, Mass, Length, aggregation_birth, daughter_moment
 export AbstractSourceTerm, CompositeSourceTerm, compute_source_terms
 
 # --- 2. Math Utilities (Dual Backend) ---

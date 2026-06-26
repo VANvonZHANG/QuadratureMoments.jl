@@ -7,6 +7,7 @@ using QuadratureMoments
     include("test_pd.jl")
     include("test_realizability.jl")
     include("test_stirling.jl")
+    include("test_coordinates.jl")
     include("test_cqmom.jl")
     include("test_ecqmom.jl")
     include("test_eqmom.jl")
