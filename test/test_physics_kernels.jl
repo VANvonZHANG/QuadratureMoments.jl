@@ -21,8 +21,8 @@ using StaticArrays
 
     @testset "Daughter distributions (MassBased / LengthBased table)" begin
         # Symmetric
-        @test daughter_moment(SymmetricFragmentation(), 1, 4.0, MassBased())   ≈ 4.0          # 2^0 * 4
-        @test daughter_moment(SymmetricFragmentation(), 0, 4.0, MassBased())   ≈ 2.0          # two daughters
+        @test daughter_moment(SymmetricFragmentation(), 1, 4.0, MassBased()) ≈ 4.0          # 2^0 * 4
+        @test daughter_moment(SymmetricFragmentation(), 0, 4.0, MassBased()) ≈ 2.0          # two daughters
         @test daughter_moment(SymmetricFragmentation(), 3, 4.0, LengthBased()) ≈ 4.0^3        # volume conserved
         # Uniform
         @test daughter_moment(Uniform(), 1, 4.0, MassBased()) ≈ 4.0              # 2*4/(1+1)
@@ -30,7 +30,7 @@ using StaticArrays
         # OneQuarterMassRatio
         @test daughter_moment(OneQuarterMassRatio(), 1, 5.0, MassBased()) ≈ 5.0  # (4+1)*5/5
         # Erosion (needs d0)
-        @test daughter_moment(Erosion(1.0), 1, 4.0, MassBased())   ≈ 1.0 + 3.0
+        @test daughter_moment(Erosion(1.0), 1, 4.0, MassBased()) ≈ 1.0 + 3.0
         @test daughter_moment(Erosion(1.0), 3, 4.0, LengthBased()) ≈ 1.0 + (4.0^3 - 1.0^3)
         # FullFragmentation (needs d0)
         @test daughter_moment(FullFragmentation(2.0), 0, 4.0, MassBased()) ≈ 4.0 / 2.0

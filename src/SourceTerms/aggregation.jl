@@ -22,7 +22,9 @@ raw"""
 struct Aggregation{K,C<:AbstractCoord} <: AbstractSourceTerm
     kernel::K
     coord::C
-    Aggregation(kernel::K, coord::C=MassBased()) where {K,C<:AbstractCoord} = new{K,C}(kernel, coord)
+    function Aggregation(kernel::K, coord::C=MassBased()) where {K,C<:AbstractCoord}
+        new{K,C}(kernel, coord)
+    end
 end
 
 raw"""
@@ -43,10 +45,14 @@ function compute_source_terms(
                 for j in 1:N
                     iszero(weights[j]) && continue
                     β = agg.kernel(nodes[i], nodes[j])
-                    val += weights[i] * weights[j] * β * (
-                        0.5 * aggregation_birth(agg.coord, nodes[i], nodes[j], k) -
-                        nodes[i]^k
-                    )
+                    val +=
+                        weights[i] *
+                        weights[j] *
+                        β *
+                        (
+                            0.5 * aggregation_birth(agg.coord, nodes[i], nodes[j], k) -
+                            nodes[i]^k
+                        )
                 end
             end
             return val

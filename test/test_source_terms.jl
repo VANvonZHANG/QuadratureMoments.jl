@@ -166,14 +166,18 @@ using StaticArrays
         beta_0 = 1.2
         # Aggregation, mass-based: S_k = 0.5*Σ_i Σ_j w_i w_j β (ξ_i+ξ_j)^k - Σ_i Σ_j w_i w_j β ξ_i^k
         ref_agg = [-0.6000000000000001, 4.440892098500626e-16, 3.468, 21.419999999999998]
-        S_old = compute_source_terms(Aggregation((xi, xj) -> beta_0), nodes_bc, weights_bc, Val(4))
+        S_old = compute_source_terms(
+            Aggregation((xi, xj) -> beta_0), nodes_bc, weights_bc, Val(4)
+        )
         @test S_old ≈ ref_agg atol=1e-10
 
         b0 = 1.5
         # Breakage, mass-based, symmetric binary daughter (k,ξ) -> 2^(1-k) ξ^k:
         # S_k = Σ_i w_i b0 2^(1-k) ξ_i^k - Σ_i w_i b0 ξ_i^k
         ref_brk = [1.5, 0.0, -2.625, -9.3375]
-        Sb_old = compute_source_terms(Breakage(xi -> b0, (k, xi) -> 2.0^(1 - k) * xi^k), nodes_bc, weights_bc, Val(4))
+        Sb_old = compute_source_terms(
+            Breakage(xi -> b0, (k, xi) -> 2.0^(1 - k) * xi^k), nodes_bc, weights_bc, Val(4)
+        )
         @test Sb_old ≈ ref_brk atol=1e-10
     end
 
@@ -185,7 +189,9 @@ using StaticArrays
         m = @SVector [1.0, 5.2, 29.0, 170.8, 1051.0]
         res = invert_moments(EQMOM(2, GaussianKernel()), m)
         en, ew = expand_quadrature(res, GaussianKernel(), Val(8))
-        S_mass = compute_source_terms(Aggregation(Constant(1.0), MassBased()), en, ew, Val(4))
+        S_mass = compute_source_terms(
+            Aggregation(Constant(1.0), MassBased()), en, ew, Val(4)
+        )
         @test all(isfinite, S_mass)
         @test S_mass[2] ≈ 0.0 atol=1e-6    # mass conserved under MassBased aggregation
     end

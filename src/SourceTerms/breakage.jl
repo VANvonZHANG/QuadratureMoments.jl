@@ -25,7 +25,9 @@ struct Breakage{F,P,C<:AbstractCoord} <: AbstractSourceTerm
     frequency_func::F
     daughter::P
     coord::C
-    Breakage(f::F, daughter::P, coord::C=MassBased()) where {F,P,C<:AbstractCoord} = new{F,P,C}(f, daughter, coord)
+    function Breakage(f::F, daughter::P, coord::C=MassBased()) where {F,P,C<:AbstractCoord}
+        new{F,P,C}(f, daughter, coord)
+    end
 end
 
 raw"""
@@ -43,7 +45,9 @@ function compute_source_terms(
             for i in 1:N
                 iszero(weights[i]) && continue
                 freq = breakage.frequency_func(nodes[i])
-                frag_moment = daughter_moment(breakage.daughter, k, nodes[i], breakage.coord)
+                frag_moment = daughter_moment(
+                    breakage.daughter, k, nodes[i], breakage.coord
+                )
                 val += weights[i] * freq * (frag_moment - nodes[i]^k)
             end
             return val
