@@ -26,7 +26,7 @@ struct Breakage{F,P,C<:AbstractCoord} <: AbstractSourceTerm
     daughter::P
     coord::C
     function Breakage(f::F, daughter::P, coord::C=MassBased()) where {F,P,C<:AbstractCoord}
-        new{F,P,C}(f, daughter, coord)
+        return new{F,P,C}(f, daughter, coord)
     end
 end
 

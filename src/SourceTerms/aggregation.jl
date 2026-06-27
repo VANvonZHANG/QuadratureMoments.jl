@@ -23,7 +23,7 @@ struct Aggregation{K,C<:AbstractCoord} <: AbstractSourceTerm
     kernel::K
     coord::C
     function Aggregation(kernel::K, coord::C=MassBased()) where {K,C<:AbstractCoord}
-        new{K,C}(kernel, coord)
+        return new{K,C}(kernel, coord)
     end
 end
 
