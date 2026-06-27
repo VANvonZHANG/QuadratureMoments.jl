@@ -12,7 +12,10 @@ jobs:
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1.10'
-      - run: julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
+      # Pinned: the committed source is formatted with this exact version (verified
+      # byte-identical to its output). Bump deliberately and re-run `format(".")` locally
+      # before merging, so CI and contributors stay in sync. See PR #4 for the skew this fixes.
+      - run: julia -e 'using Pkg; Pkg.add(name="JuliaFormatter", version="2.10.0")'
       - run: julia -e 'using JuliaFormatter; format(".", verbose=true)'
       - name: Check formatting diff
         run: |
