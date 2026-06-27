@@ -18,10 +18,12 @@ using Combinatorics
 # --- 1. Core Infrastructure ---
 include("Core/types.jl")
 include("Core/kernels.jl")
+include("Core/coordinates.jl")
 include("Core/source_terms_api.jl")
 export AbstractQBMM, AbstractMathBackend, NativeBackend, ExternalBackend
 export QuadratureResult, n_active
 export AbstractKernel, GaussianKernel, GammaKernel, BetaKernel
+export AbstractCoord, MassBased, LengthBased, aggregation_birth, daughter_moment
 export AbstractSourceTerm, CompositeSourceTerm, compute_source_terms
 
 # --- 2. Math Utilities (Dual Backend) ---
@@ -40,6 +42,14 @@ include("SourceTerms/breakage.jl")
 include("SourceTerms/nucleation.jl")
 include("SourceTerms/deposition.jl")
 export ParticleGrowth, ParticleShrinkage, Aggregation, Breakage, Nucleation, Deposition
+
+# --- 3b. Physics Kernel Library ---
+include("Physics/aggregation_kernels.jl")
+include("Physics/daughter_distributions.jl")
+include("Physics/growth_rates.jl")
+export Constant, Sum, Brownian
+export SymmetricFragmentation, Uniform, OneQuarterMassRatio, Erosion, FullFragmentation
+export ConstantGrowth, LinearGrowth
 
 # --- 4. 1D Solvers ---
 include("Solvers/1D/wheeler.jl")

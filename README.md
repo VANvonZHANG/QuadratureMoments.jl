@@ -97,6 +97,21 @@ S_k = compute_source_terms(physics, nodes, weights, Val(6))
 da, db = dqmom_solve(DQMOM(3), nodes, S_k)
 ```
 
+### Coordinate convention (LengthBased vs MassBased)
+`Aggregation` and `Breakage` accept an optional coordinate convention (default `MassBased()`):
+- `MassBased()` — ξ is volume/mass (additive); aggregation birth `(ξ_i+ξ_j)^k`.
+- `LengthBased()` — ξ is a diameter (volume ∝ ξ³ conserved); birth `(ξ_i³+ξ_j³)^(k/3)`.
+
+```julia
+Aggregation(Brownian(ko), LengthBased())          # diameter-based aerosol aggregation
+Breakage(Constant(b0), SymmetricFragmentation(), MassBased())  # mass-based symmetric breakage
+```
+
+### Built-in physics kernels (`src/Physics/`)
+- **Aggregation rates**: `Constant(β0)`, `Sum(β0)`, `Brownian(ko)`.
+- **Daughter distributions**: `SymmetricFragmentation()`, `Uniform()`, `OneQuarterMassRatio()`, `Erosion(d0)`, `FullFragmentation(d0)`.
+- **Growth rates**: `ConstantGrowth(G0)`, `LinearGrowth(k0)`.
+
 ---
 
 ## 6. Performance Guide

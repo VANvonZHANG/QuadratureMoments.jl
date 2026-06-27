@@ -137,4 +137,62 @@ using StaticArrays
             @test isapprox(S[k + 1], expected; atol=1e-10)
         end
     end
+
+    @testset "LengthBased-based Aggregation (volume conservation)" begin
+        beta_0 = 1.2
+        agg_len = Aggregation((xi, xj) -> beta_0, LengthBased())
+
+        S_k = compute_source_terms(agg_len, nodes, weights, Val(4))
+        @test size(S_k) == (4,)
+        # S_3 (k=3, volume moment) == 0  — volume conserved under LengthBased aggregation
+        @test S_k[4] ≈ 0.0 atol=1e-10
+        # S_0 is coordinate-independent (number): -0.5*beta_0*m0^2
+        @test S_k[1] ≈ -0.5 * beta_0 * (m0^2) atol=1e-10
+        # S_1 is NOT generally zero under LengthBased (mass moment not conserved)
+        @test abs(S_k[2]) > 1e-6
+    end
+
+    @testset "Backward compat: old-form matches raw physics snapshot" begin
+        # Snapshots computed directly from the raw physics formulas (independent of the
+        # QuadratureMoments package): plain Array{Float64}, double for-loops, no `using`.
+        # Fixture restated here so the snapshot test is self-contained (independent of any
+        # `nodes`/`weights` re-binding in earlier testsets).
+        # atol=1e-10 reflects the refactor's floating-point operation-order change
+        # (old: separate term1 - term2 products; new: factored w_i*w_j*β*(0.5*birth - death)),
+        # NOT a regression — results agree to ~1e-14.
+        nodes_bc = @SVector [1.0, 2.0, 3.0]
+        weights_bc = @SVector [0.5, 0.3, 0.2]
+
+        beta_0 = 1.2
+        # Aggregation, mass-based: S_k = 0.5*Σ_i Σ_j w_i w_j β (ξ_i+ξ_j)^k - Σ_i Σ_j w_i w_j β ξ_i^k
+        ref_agg = [-0.6000000000000001, 4.440892098500626e-16, 3.468, 21.419999999999998]
+        S_old = compute_source_terms(
+            Aggregation((xi, xj) -> beta_0), nodes_bc, weights_bc, Val(4)
+        )
+        @test S_old ≈ ref_agg atol=1e-10
+
+        b0 = 1.5
+        # Breakage, mass-based, symmetric binary daughter (k,ξ) -> 2^(1-k) ξ^k:
+        # S_k = Σ_i w_i b0 2^(1-k) ξ_i^k - Σ_i w_i b0 ξ_i^k
+        ref_brk = [1.5, 0.0, -2.625, -9.3375]
+        Sb_old = compute_source_terms(
+            Breakage(xi -> b0, (k, xi) -> 2.0^(1 - k) * xi^k), nodes_bc, weights_bc, Val(4)
+        )
+        @test Sb_old ≈ ref_brk atol=1e-10
+    end
+
+    @testset "coord-aware source composes with expand_quadrature" begin
+        # Gaussian EQMOM expands nodes over (-inf, inf), which can include negative
+        # values. Only MassBased (birth (xi_i+xi_j)^k, defined for all reals) is valid
+        # on them; LengthBased birth (xi_i^3+xi_j^3)^(k/3) needs non-negative nodes
+        # (diameters) and is exercised on positive nodes in test_physics_kernels.jl.
+        m = @SVector [1.0, 5.2, 29.0, 170.8, 1051.0]
+        res = invert_moments(EQMOM(2, GaussianKernel()), m)
+        en, ew = expand_quadrature(res, GaussianKernel(), Val(8))
+        S_mass = compute_source_terms(
+            Aggregation(Constant(1.0), MassBased()), en, ew, Val(4)
+        )
+        @test all(isfinite, S_mass)
+        @test S_mass[2] ≈ 0.0 atol=1e-6    # mass conserved under MassBased aggregation
+    end
 end
